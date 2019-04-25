@@ -1,0 +1,325 @@
+info:
+  description: ''
+  title: ''
+  version: ''
+openapi: 3.0.0
+paths:
+  /speech/:
+    get:
+      operationId: speech_list
+      tags:
+      - speech
+  /speech/annotation{format}:
+    get:
+      operationId: speech_read
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: status
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: segment
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      operationId: speech_create
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/audioannotation{format}:
+    get:
+      operationId: speech_read_0
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: status
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: segment
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      operationId: speech_create_0
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/corpus{format}:
+    get:
+      description: List all corpora, or create a new corpus.
+      operationId: speech_read_1
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      description: List all corpora, or create a new corpus.
+      operationId: speech_create_1
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/model{format}:
+    get:
+      operationId: speech_read_2
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: status
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: tags
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      operationId: speech_create_2
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/segment{format}:
+    get:
+      description: List all segments, or create a new segment
+      operationId: speech_read_3
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: corpus
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      description: List all segments, or create a new segment
+      operationId: speech_create_3
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/spantextannotation{format}:
+    get:
+      operationId: speech_read_4
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: status
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: segment
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      operationId: speech_create_4
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech/textannotation{format}:
+    get:
+      operationId: speech_read_5
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: status
+        schema:
+          description: ''
+          title: ''
+          type: string
+      - in: query
+        name: segment
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+    post:
+      operationId: speech_create_5
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - speech
+  /speech{format}:
+    get:
+      operationId: read
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+  /users/:
+    get:
+      operationId: users_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          description: A page number within the paginated result set.
+          title: Page
+          type: integer
+      tags:
+      - users
+  /users/{id}/:
+    get:
+      operationId: users_read
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          description: A unique integer value identifying this user.
+          title: ID
+          type: integer
+      tags:
+      - users
+  /users/{id}{format}:
+    get:
+      operationId: users_read_0
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          description: A unique integer value identifying this user.
+          title: ID
+          type: integer
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - users
+  /users{format}:
+    get:
+      operationId: read_0
+      parameters:
+      - in: path
+        name: format
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+servers:
+- url: ''
