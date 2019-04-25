@@ -23,7 +23,7 @@ python manage.py makemigrations speech
 python manage.py migrate
 ~~~~
 
-These should print basically write the necessary migrations and create a database `db.sqlite3`, initialize its database schema:
+These should basically write the necessary migrations (in `speech/migrations`) and create a database `db.sqlite3`, initializing its database schema. You should see an output like this:
 ~~~~
 Migrations for 'speech':
   speech/migrations/0001_initial.py
@@ -76,12 +76,12 @@ Now, using the `login` button on the top right corner of the browsable API you c
 Now refreshing the localhost page will list a user with some attributes (note e.g. that the password is not visible).
 You can see how the "corpus" is empty, as there are no corpora owned by this user yet. The SQL database is empty.
 The script `populate.py` adds a couple of entries in the database: models, corpora, and segments with annotations.
-With the server running, go the other terminal and run:
+With the server running, go to another terminal and run:
 ~~~~
 python manage.py shell < populate.py 
 ~~~~
 
-Refrshing the users page again, there should be a couple of corpora associated with this user.
+Refrshing the users page again, there should be a couple of corpora associated with your user.
 You can follow each corpus' link, or you can list all corpora by navigating to `http://localhost:8000/speech/corpus/`.
 
 The same for listing all models (`http://localhost:8000/speech/model/`) or all segments (`http://localhost:8000/speech/segment/`) or all annotations (`http://localhost:8000/speech/annotation/`).
@@ -105,12 +105,11 @@ The different subclasses are serialized differently: e.g. `SpanTextAnnotation` i
 
 TODO(aanastas): Provide info about the type of the annotation in a way other than the subclass name.
 
-The different Annotations can be filtered using the predefined filters, based on their status (todo(aanastas): talk to Graham) and based on the segment they belong to.
+The different Annotations can be filtered using the predefined filters, based on their status and based on the segment they belong to.
 
-We can use the API's forms (at the bottom) to create new entries. e.g. in the bottom of `http://localhost:8000/speech/segment/` you can add a name for a new segment (e.g. 's5')
-and click POST.
-Or even better, let's use a mock client (with httpie) to move things around. We will again create a couple new segments, without specifying the corpus that they belong to.
-In the other terminal (with the server still running) run (this shows the two formats you can pass information to the api):
+TODO(aanastas): talk to Graham about the Annotation status (which matches if they were user provided, model generated, user confirmed, etc).
+
+We can use the API's forms (at the bottom) to create new entries. e.g. in the bottom of `http://localhost:8000/speech/segment/` you can add a name for a new segment (e.g. 's5') and click POST. Or even better, let's use a mock client (with httpie) to move things around. We will again create a couple new segments, without specifying the corpus that they belong to. In the other terminal (with the server still running) run (this shows the two formats you can pass information to the api):
 ```
  http -a antonis:password123 --form POST http://127.0.0.1:8000/speech/segment/ name="s6"
  http -a antonis:password123 --json POST http://127.0.0.1:8000/speech/segment/ {"name"="s7",}
@@ -135,7 +134,7 @@ Let's say we want to create a new text annotation about the speaker. Then we can
 http -a antonis:password123 --json POST http://127.0.0.1:8000/speech/textannotation/ {"field_name"="speaker","text"="Maria"}
 ~~~~
 
-In order to train a model, one could make a call like the following:
+In order to train a model, one could make a call like the following (this should respond with 501 not implemented):
 ~~~~
 http -a antonis:password123 --json POST http://127.0.0.1:8000/speech/model/1/train
 ~~~~
@@ -148,6 +147,7 @@ python manage.py generateschema > schema.yaml
 ~~~~
 
 TODO(aanastas): Figure out how to include the function calls (and not just APIviews in the schema).
+
 TODO(aanastas): Figure out how to properly set the {format} fields in the schema -- doesn't seem to be iportant though.
 
 
