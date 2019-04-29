@@ -1,5 +1,67 @@
 
 
+# Views for Segments
+class SegmentList1(APIView):
+	"""
+	List all segments, or create a new segment
+	"""
+	# This makes sure that only authenticated requests get served
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+	filter_backends = (DjangoFilterBackend,)
+	filterset_fields = ('corpus',)
+
+	def get(self, request, format=None):
+		segment = Segment.objects.all()
+		serializer = SegmentSerializer(segment, many=True)
+		return Response(serializer.data)
+
+	def post(self, request, format=None):
+		segment = Segment.get_object(pk)
+		serializer = SegmentSerializer(data=request.data)
+
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+	# This ties the corpus to its owner (User)
+	def perform_create(self, serializer):
+		serializer.save(owner=self.request.user)
+
+
+class SegmentDetail1(APIView):
+	"""
+	Retrieve, update or delete a segment.
+	"""
+	# This makes sure that only authenticated requests get served
+	# and that only the Owner of a corpus can modify it
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+	def get_object(self, pk):
+		try:
+			return Segment.objects.get(pk=pk)
+		except Segment.DoesNotExist:
+			raise Http404
+
+	def get(self, request, pk, format=None):
+		segment = self.get_object(pk)
+		serializer = SegmentSerializer(segment)
+		return Response(serializer.data)
+
+	def put(self, request, pk, format=None):
+		segment = self.get_object(pk)
+		serializer = SegmentSerializer(segment, data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def delete(self, request, pk, format=None):
+		segment = self.get_object(pk)
+		segment.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+
 # Generic Views for Annotations
 class AnnotationList(APIView):
 	"""

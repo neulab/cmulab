@@ -28,14 +28,15 @@ class CorpusSerializer(serializers.HyperlinkedModelSerializer):
 
 class SegmentSerializer(serializers.HyperlinkedModelSerializer):
     #annotation = serializers.PrimaryKeyRelatedField(many=True, queryset=Annotation.objects.all())
-    corpus = serializers.ReadOnlyField(source='corpus.id')
-    annotation = serializers.PrimaryKeyRelatedField(many=True, queryset=Annotation.objects.all()) #view_name='annotation-detail')
+    corpus = serializers.ReadOnlyField(source='corpus.id', allow_null=True)
+    annotation = serializers.PrimaryKeyRelatedField(many=True, read_only=True, allow_null=True) #view_name='annotation-detail')
+    #annotation = serializers.PrimaryKeyRelatedField(many=True, queryset=Annotation.objects.all()) #view_name='annotation-detail')
     class Meta:
         model = Segment
         fields = ('id', 'name', 'corpus', 'annotation')
 
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
-    segment = serializers.ReadOnlyField(source='segment.id')
+    segment = serializers.ReadOnlyField(source='segment.id', allow_null=True)
     class Meta:
         model = Annotation
         fields = ('id', 'field_name', 'segment', 'status')

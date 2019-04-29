@@ -295,19 +295,19 @@ paths:
       operationId: users_read_0
       parameters:
       - in: path
-        name: id
-        required: true
-        schema:
-          description: A unique integer value identifying this user.
-          title: ID
-          type: integer
-      - in: path
         name: format
         required: true
         schema:
           description: ''
           title: ''
           type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          description: A unique integer value identifying this user.
+          title: ID
+          type: integer
       tags:
       - users
   /users{format}:

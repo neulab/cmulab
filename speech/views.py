@@ -26,7 +26,11 @@ from speech.serializers import AnnotationSerializer, AudioAnnotationSerializer, 
 def api_root(request, format=None):
     return Response({
         'users': reverse('user-list', request=request, format=format),
-        'corpus': reverse('corpus-list', request=request, format=format)
+        'corpus': reverse('corpus-list', request=request, format=format),
+        'model': reverse('model-list', request=request, format=format),
+        'segment': reverse('segment-list', request=request, format=format),
+        'annotation': reverse('annotation-list', request=request, format=format),
+        'schema': reverse('schema', request=request, format=format),
     })
 
 
@@ -132,15 +136,15 @@ def addsegmentstocorpus(request, pk, s_list):
 			except Segment.DoesNotExist:
 				raise Http404
 			segment.corpus=corpus
+			segment.name = segment.name
 			segment.save()
 			segment_list.append(segment)
 
-		serializer = SegmentSerializer(data=request.data)
-		if serializer.is_valid():
+			serializer = SegmentSerializer(segment, data=request.data)
+			if not serializer.is_valid():
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 			serializer.save()
-			return Response(serializer.data)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-			#return Response(serializer.data)
+		return Response(status=status.HTTP_202_ACCEPTED)
 
 @api_view(['GET', 'PUT'])
 def removesegmentsfromcorpus(request, pk, s_list):
@@ -158,82 +162,31 @@ def removesegmentsfromcorpus(request, pk, s_list):
 		segment_list = []
 		segment_ids = s_list
 		segment_ids = segment_ids.split(',')
-		for s_id in segment_ids:
-			try:
-				segment = Segment.objects.get(pk=s_id)
-			except Segment.DoesNotExist:
-				raise Http404
-			segment.corpus=None
-			segment.save()
-			segment_list.append(segment)
-
-		serializer = SegmentSerializer(data=request.data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-			#return Response(serializer.data)
-
-
-# Views for Segments
-class SegmentList(APIView):
-	"""
-	List all segments, or create a new segment
-	"""
-	# This makes sure that only authenticated requests get served
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-	def get(self, request, format=None):
-		segment = Segment.objects.all()
-		serializer = SegmentSerializer(segment, many=True)
-		return Response(serializer.data)
-
-	def post(self, request, format=None):
-		segment = Segment.get_object(pk)
-		serializer = SegmentSerializer(data=request.data)
-
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-	# This ties the corpus to its owner (User)
-	def perform_create(self, serializer):
-		serializer.save(owner=self.request.user)
-
-
-class SegmentDetail(APIView):
-	"""
-	Retrieve, update or delete a segment.
-	"""
-	# This makes sure that only authenticated requests get served
-	# and that only the Owner of a corpus can modify it
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-	def get_object(self, pk):
 		try:
-			return Segment.objects.get(pk=pk)
-		except Segment.DoesNotExist:
-			raise Http404
+			for s_id in segment_ids:
+				try:
+					segment = Segment.objects.get(pk=s_id)
+				except Segment.DoesNotExist:
+					raise Http404
+				segment.corpus=None
+				segment.save()
+				segment_list.append(segment)
+			return Response(status=status.HTTP_202_ACCEPTED)
+		except:
+			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-	def get(self, request, pk, format=None):
-		segment = self.get_object(pk)
-		serializer = SegmentSerializer(segment)
-		return Response(serializer.data)
+@api_view(['POST'])
+def trainModel(request, pk):
+	try:
+		mlmodel = Mlmodel.objects.get(pk=pk)
+	except Mlmodel.DoesNotExist:
+		raise Http404
 
-	def put(self, request, pk, format=None):
-		segment = self.get_object(pk)
-		serializer = SegmentSerializer(segment, data=request.data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	if request.method == 'POST':
+		return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-	def delete(self, request, pk, format=None):
-		segment = self.get_object(pk)
-		segment.delete()
-		return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 
 class AnnotationsInSegment(APIView):
 	"""
@@ -257,57 +210,141 @@ class AnnotationsInSegment(APIView):
 
 
 
+@api_view(['GET', 'PUT'])
+def addannotationstosegment(request, pk, s_list):
+	try:
+		segment = Segment.objects.get(pk=pk)
+	except Segment.DoesNotExist:
+		raise Http404
+
+	if request.method == 'GET':
+		annot = Annotation.objects.filter(segment=segment.id)
+		serializer = AnnotationSerializer(annot)
+		return Response(serializer.data)
+
+	elif request.method == 'PUT':
+		annot_list = []
+		annot_ids = s_list
+		annot_ids = annot_ids.split(',')
+		for a_id in annot_ids:
+			try:
+				annot = Annotation.objects.get(pk=a_id)
+			except Annotation.DoesNotExist:
+				raise Http404
+			annot.segment=segment
+			annot.field_name = annot.field_name
+			annot.status = annot.status
+			# TODO: add subclass specific fields
+			annot.save()
+			annot_list.append(annot)
+
+			serializer = AnnotationSerializer(annot, data=request.data)
+			if not serializer.is_valid():
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+			serializer.save()
+		return Response(status=status.HTTP_202_ACCEPTED)
+
+@api_view(['GET', 'PUT'])
+def removeannotationsfromsegment(request, pk, s_list):
+	try:
+		segment = Segment.objects.get(pk=pk)
+	except Segment.DoesNotExist:
+		raise Http404
+
+	if request.method == 'GET':
+		annot = Annotation.objects.filter(segment=segment.id)
+		serializer = AnnotationSerializer(segment)
+		return Response(serializer.data)
+
+	elif request.method == 'PUT':
+		annot_list = []
+		annot_ids = s_list
+		annot_ids = annot_ids.split(',')
+		try:
+			for a_id in annot_ids:
+				try:
+					annot = Annotation.objects.get(pk=a_id)
+				except Annotation.DoesNotExist:
+					raise Http404
+				annot.segment=None
+				annot.save()
+				annot_list.append(annot)
+			return Response(status=status.HTTP_202_ACCEPTED)
+		except:
+			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 # These generic API views for annotations work too
-class ModelList(generics.ListAPIView):
+class SegmentList(generics.ListCreateAPIView):
+	"""
+	List all segments, or create a new segment
+	"""
+	queryset = Segment.objects.all()
+	serializer_class = SegmentSerializer
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+	filter_backends = (DjangoFilterBackend,)
+	filterset_fields = ('corpus',)
+	# This ties the corpus to its owner (User)
+	#def perform_create(self, serializer):
+	#	serializer.save(owner=self.request.user)
+
+class SegmentDetail(generics.RetrieveUpdateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+	queryset = Segment.objects.all()
+	serializer_class = SegmentSerializer
+
+
+
+# These generic API views for annotations work too
+class ModelList(generics.ListCreateAPIView):
 	queryset = Mlmodel.objects.all()
 	serializer_class = MlmodelSerializer
 	filter_backends = (DjangoFilterBackend,)
-	filterset_fields = ('status', 'tags')
+	filterset_fields = ('status', 'tags',)
 
-class ModelDetail(generics.RetrieveAPIView):
+class ModelDetail(generics.RetrieveUpdateAPIView):
 	queryset = Mlmodel.objects.all()
 	serializer_class = MlmodelSerializer
 
 
-class AnnotationList(generics.ListAPIView):
+class AnnotationList(generics.ListCreateAPIView):
 	queryset = Annotation.objects.all()
 	serializer_class = AnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
-	filterset_fields = ('status',)
+	filterset_fields = ('status', 'segment',)
 
-class AnnotationDetail(generics.RetrieveAPIView):
+class AnnotationDetail(generics.RetrieveUpdateAPIView):
 	queryset = Annotation.objects.all()
 	serializer_class = AnnotationSerializer
 
-class AudioAnnotationList(generics.ListAPIView):
+class AudioAnnotationList(generics.ListCreateAPIView):
 	queryset = AudioAnnotation.objects.all()
 	serializer_class = AudioAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
-	filterset_fields = ('status',)
+	filterset_fields = ('status', 'segment', )
 
-class AudioAnnotationDetail(generics.RetrieveAPIView):
+class AudioAnnotationDetail(generics.RetrieveUpdateAPIView):
 	queryset = AudioAnnotation.objects.all()
 	serializer_class = AudioAnnotationSerializer
 
-class TextAnnotationList(generics.ListAPIView):
+class TextAnnotationList(generics.ListCreateAPIView):
 	queryset = TextAnnotation.objects.all()
 	serializer_class = TextAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
-	filterset_fields = ('status',)
+	filterset_fields = ('status', 'segment',)
 
-class TextAnnotationDetail(generics.RetrieveAPIView):
+class TextAnnotationDetail(generics.RetrieveUpdateAPIView):
 	queryset = TextAnnotation.objects.all()
 	serializer_class = TextAnnotationSerializer
 
-class SpanTextAnnotationList(generics.ListAPIView):
+class SpanTextAnnotationList(generics.ListCreateAPIView):
 	queryset = SpanTextAnnotation.objects.all()
 	serializer_class = SpanTextAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
-	filterset_fields = ('status',)
+	filterset_fields = ('status', 'segment',)
 
-class SpanTextAnnotationDetail(generics.RetrieveAPIView):
+class SpanTextAnnotationDetail(generics.RetrieveUpdateAPIView):
 	queryset = SpanTextAnnotation.objects.all()
 	serializer_class = SpanTextAnnotationSerializer
 

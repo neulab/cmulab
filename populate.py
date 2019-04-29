@@ -49,7 +49,7 @@ segment2.save()
 segment3=Segment(name="s3", corpus=corpus2)
 segment3.save()
 
-segment4=Segment(name="s3", corpus=corpus2)
+segment4=Segment(name="s4", corpus=corpus2)
 segment4.save()
 
 
