@@ -127,7 +127,12 @@ Similarly, you can remove segments from a corpus (this will not delete them, the
 http -a antonis:password123 --json PUT http://localhost:8000/speech/corpus/2/removesegments/6/
 ~~~~
 
-TODO(aanastas): Implement the same things for moving annotations between segments, and segments between corpora
+Same operations can be performed between annotations and segments. You can move annotations between segments with e.g.:
+```
+http -a antonis:password123 --json PUT http://localhost:8000/speech/segment/1/removeannotations/3/
+http -a antonis:password123 --json PUT http://localhost:8000/speech/segment/3/addannotations/3/
+```
+
 
 Let's say we want to create a new text annotation about the speaker. Then we can do:
 ~~~~
