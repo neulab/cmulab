@@ -10,8 +10,8 @@ serializer_context = {
 
 
 # Add a couple of models
-from speech.models import Mlmodel
-from speech.serializers import MlmodelSerializer
+from annotator.models import Mlmodel
+from annotator.serializers import MlmodelSerializer
 
 model1=Mlmodel(name="VAD_model", modelTrainingSpec="python silence.py < {input} > {output}", status='ready', tags=Mlmodel.VAD)
 model1.save()
@@ -25,8 +25,8 @@ model3.save()
 
 # Add some corpora
 
-from speech.models import Corpus
-from speech.serializers import CorpusSerializer
+from annotator.models import Corpus
+from annotator.serializers import CorpusSerializer
 
 corpus1=Corpus(name="mboshi")
 corpus1.save()
@@ -37,8 +37,8 @@ corpus2.save()
 
 # Add some segments
 
-from speech.models import Segment
-from speech.serializers import SegmentSerializer
+from annotator.models import Segment
+from annotator.serializers import SegmentSerializer
 
 segment1=Segment(name="s1", corpus=corpus1)
 segment1.save()
@@ -54,8 +54,8 @@ segment4.save()
 
 
 # Add annotations
-from speech.models import TextAnnotation
-from speech.serializers import TextAnnotationSerializer
+from annotator.models import TextAnnotation
+from annotator.serializers import TextAnnotationSerializer
 
 annot=TextAnnotation(field_name="location", segment=segment2, text="Calimera", status=TextAnnotation.CORRECT)
 annot.save()
@@ -64,8 +64,8 @@ annot=TextAnnotation(field_name="location", segment=segment3, text="Martano", st
 annot.save()
 
 
-from speech.models import SpanTextAnnotation
-from speech.serializers import SpanTextAnnotationSerializer
+from annotator.models import SpanTextAnnotation
+from annotator.serializers import SpanTextAnnotationSerializer
 
 annot=SpanTextAnnotation(field_name="phonemes", segment=segment2, text="c", start=0.01, end=0.05, status=TextAnnotation.GENERATED)
 annot.save()

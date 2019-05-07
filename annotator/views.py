@@ -13,13 +13,13 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from speech.models import Mlmodel, Corpus, Segment
-from speech.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
+from annotator.models import Mlmodel, Corpus, Segment
+from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
 
-from speech.permissions import IsOwnerOrReadOnly
+from annotator.permissions import IsOwnerOrReadOnly
 
-from speech.serializers import MlmodelSerializer, CorpusSerializer, SegmentSerializer, UserSerializer
-from speech.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
+from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSerializer, UserSerializer
+from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 
 @api_view(['GET'])

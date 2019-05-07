@@ -43,7 +43,7 @@ def load_tier(elan, tier_name, input_dir):
       media_data = media_handle.read()
     return ('media', media_data, input_elan.media_descriptors[tier_id]['MEDIA_URL'])
   else:
-    raise NotImplementedError('Probably want to extract this and conver it into (annotation, start, end) notation')
+    raise NotImplementedError('Probably want to extract this and convert it into (annotation, start, end) notation')
 
 def get_annotations(input_tier_data, model_name):
   """
@@ -57,6 +57,7 @@ def get_annotations(input_tier_data, model_name):
     A list of tuples of annotations [(annot, start, end), (annot, start, end), ...]
   """
   raise NotImplementedError('need to implement get_annotations')
+
 
 for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
   print(input_file)
