@@ -12,6 +12,7 @@ urlpatterns = [
     path('speech/model/', views.ModelList.as_view(), name='model-list'),
     path('speech/model/<int:pk>/', views.ModelDetail.as_view(), name='model-detail'),
     path('speech/model/<int:pk>/train', views.trainModel, name='model-train'),
+    path('speech/model/<int:mk>/annotate/<int:sk>/', views.annotate, name='annotate'),
     #path('speech/model/findByTags/', views.model_list_by_tags),
     #path('speech/model/findByStatus/', views.model_list_by_status),
     path('speech/corpus/', views.CorpusList.as_view(), name='corpus-list'),
