@@ -40,7 +40,7 @@ input_tiers = args.input_tiers.split(',')
 
 if not os.path.isdir(args.output_dir):
   os.mkdir(args.output_dir)
-'''
+
 def load_tier(elan, tier_name, input_dir):
   """
   Returns the data of a tier as a list of tuples:
@@ -76,7 +76,7 @@ def load_tier(elan, tier_name, input_dir):
       print(f"Didn't find tier {tier_name} in the elan file")
       return -1
     #raise NotImplementedError('Probably want to extract this and convert it into (annotation, start, end) notation')
-'''
+
 
 
 def get_annotations(input_tier_data, input_tiers, model_name):
