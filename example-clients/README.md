@@ -13,3 +13,12 @@ First, install CMULAB client API and other requirements
 Given a directory of ELAN files, parse them.
 
     python cmulab_elan.py input_directory input_tier output_directory output_tier model_name
+
+
+## How to get annotations using the API
+
+With the server running (`python manage.py runserver` on another terminal), the following should work:
+
+	python manage.py shell < cmulab_elan.py
+
+but it fails for a reason to be debugged.
