@@ -4,6 +4,8 @@ from django.shortcuts import render
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.http import HttpResponse, Http404
+
 from rest_framework import generics
 from rest_framework import status
 from rest_framework import permissions
@@ -13,15 +15,15 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from speech.models import Mlmodel, Corpus, Segment
-from speech.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
+from annotator.models import Mlmodel, Corpus, Segment
+from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
 
-from speech.permissions import IsOwnerOrReadOnly
+from annotator.permissions import IsOwnerOrReadOnly
 
-from speech.serializers import MlmodelSerializer, CorpusSerializer, SegmentSerializer, UserSerializer
-from speech.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
+from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSerializer, UserSerializer
+from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
-from speech.BackendModels import MLModels
+from annotator.BackendModels import MLModels
 
 @api_view(['GET'])
 def api_root(request, format=None):

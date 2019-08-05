@@ -88,10 +88,15 @@ class Annotation(models.Model):
 		ordering = ('id',)
 
 
+# This is for storing audio annotations (audio files)
+def user_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'user_{0}/{1}'.format(instance.user.id, filename)
 
 class AudioAnnotation(Annotation):
 	# Audio Annotation
-	audio = models.FileField(upload_to='audios/', help_text='An audio file for the segment')
+	#audio = models.FileField(upload_to=user_directory_path, help_text='An audio file for the segment')
+	audio = models.FileField(upload_to=user_directory_path, help_text='An audio file for the segment')
 	WAV = 'wav'
 	MP3 = 'mp3'
 	AUDIO_FILE_CHOICES = [(WAV, 'wav'), (MP3, 'mp3')] # This needs to be a list of tuples

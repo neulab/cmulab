@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from speech.models import Mlmodel, Corpus, Segment
-from speech.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
+from annotator.models import Mlmodel, Corpus, Segment
+from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
 
 
 #class MlmodelSerializer(serializers.ModelSerializer):

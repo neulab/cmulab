@@ -58,6 +58,7 @@ def compute_ACC(sig, rate):
 	h_help = h - h_bar
 	#print h_help[:10]
 	ACC = np.zeros([len(h)-1])
+	print(f"Computing ACC for up to length {len(h)}")
 	for n in range(1,len(h)):
 		ACC[n-1] = np.sum(h_help[:n])
 	
@@ -182,6 +183,7 @@ def refineBoundaries(bounds, SE):
 def get_results(filename):
 	# Read input
 	(rate,sig) = wav.read(filename)
+	print(f"The wav file has a {rate} rate and {sig.shape} length")
 	(SE1,ACC1) = compute_ACC(sig,rate)
 	# Use Lowpass filter
 	order = 6

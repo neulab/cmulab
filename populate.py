@@ -1,3 +1,8 @@
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cmulab.settings')
+import django
+django.setup()
+
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
