@@ -4,6 +4,8 @@ from django.shortcuts import render
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.http import HttpResponse, Http404
+
 from rest_framework import generics
 from rest_framework import status
 from rest_framework import permissions
@@ -21,6 +23,7 @@ from annotator.permissions import IsOwnerOrReadOnly
 from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSerializer, UserSerializer
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
+from annotator.BackendModels import MLModels
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -184,6 +187,49 @@ def trainModel(request, pk):
 
 	if request.method == 'POST':
 		return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+
+
+@api_view(['GET', 'PUT'])
+def annotate(request, mk, sk):
+	#mk is the model id
+	#sk is the segment id	
+	try:
+		segment = Segment.objects.get(pk=sk)
+	except Segment.DoesNotExist:
+		raise Http404
+
+	try:
+		model = Mlmodel.objects.get(pk=mk)
+	except Mlmodel.DoesNotExist:
+		raise Http404
+
+	if request.method == 'GET':
+		annot = Annotation.objects.filter(segment=segment.id)
+		serializer = AnnotationSerializer(annot)
+		return Response(serializer.data)
+
+	elif request.method == 'PUT':
+		try:
+			# First retrieve the model details
+			modeltag = model.tags
+			#audio_file_path = segment.
+			# Create a new annotation
+			if modeltag == 'vad':
+				# This is hard-coded, it probably shouldn't
+				act_model = MLModels.KhanagaModel()
+				# Need to get the annotation of the segment that is its audio file
+				# This is in the audioannotation.audio that corresponds to this segment
+				# TODO: Get the audio annotation that corresponds to this segment or fail
+				# audio_file_path = ...
+				audio_file_path = "/Users/antonis/research/cmulab/example-clients/Sib_01-f/Sib_01-f.wav"
+				act_model.get_results(audio_file_path)
+				#Crate a text annotation with the model's output
+				annot=TextAnnotation(field_name="vad", text=act_model.output, segment=segment, status=TextAnnotation.GENERATED)
+				annot.save()
+				return Response(status=status.HTTP_202_ACCEPTED)
+		except Exception as e:
+			print(e)
+			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

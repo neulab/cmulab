@@ -1,4 +1,4 @@
-# docapi
+# CMU Linguistic Annotation Backend
 
 Requirements:
 * python 3.6+
@@ -78,7 +78,7 @@ You can see how the "corpus" is empty, as there are no corpora owned by this use
 The script `populate.py` adds a couple of entries in the database: models, corpora, and segments with annotations.
 With the server running, go to another terminal and run:
 ~~~~
-python manage.py shell < populate.py 
+python populate.py 
 ~~~~
 
 Refrshing the users page again, there should be a couple of corpora associated with your user.

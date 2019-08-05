@@ -11,7 +11,9 @@ urlpatterns = [
     path('annotator/', views.api_root),
     path('annotator/model/', views.ModelList.as_view(), name='model-list'),
     path('annotator/model/<int:pk>/', views.ModelDetail.as_view(), name='model-detail'),
-    path('annotator/model/<int:pk>/train', views.trainModel, name='model-train'),
+    path('annotator/model/<int:pk>/train/', views.trainModel, name='model-train'),
+    path('annotator/model/<int:mk>/annotate/<int:sk>/', views.annotate, name='model-annotate'),
+
     #path('annotator/model/findByTags/', views.model_list_by_tags),
     #path('annotator/model/findByStatus/', views.model_list_by_status),
     path('annotator/corpus/', views.CorpusList.as_view(), name='corpus-list'),
@@ -25,6 +27,7 @@ urlpatterns = [
     path('annotator/segment/<int:pk>/annotations/', views.AnnotationsInSegment.as_view(), name='annotationsegment-detail'),
     path('annotator/segment/<int:pk>/addannotations/<str:s_list>/', views.addannotationstosegment, name='segmentannot-add'),
     path('annotator/segment/<int:pk>/removeannotations/<str:s_list>/', views.removeannotationsfromsegment, name='segmentannot-remove'),
+    path('annotator/segment/<int:sk>/annotate/<int:mk>/', views.annotate, name='annotate'),
     path('annotator/annotation/', views.AnnotationList.as_view(), name='annotation-list'),
     path('annotator/annotation/<int:pk>/', views.AnnotationDetail.as_view(), name='annotation-detail'),
     path('annotator/textannotation/', views.TextAnnotationList.as_view(), name='textannotation-list'),

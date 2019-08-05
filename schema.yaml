@@ -4,14 +4,14 @@ info:
   version: ''
 openapi: 3.0.0
 paths:
-  /speech/:
+  /annotator/:
     get:
-      operationId: speech_list
+      operationId: annotator_list
       tags:
-      - speech
-  /speech/annotation{format}:
+      - annotator
+  /annotator/annotation{format}:
     get:
-      operationId: speech_read
+      operationId: annotator_read
       parameters:
       - in: path
         name: format
@@ -33,9 +33,9 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
-      operationId: speech_create
+      operationId: annotator_create
       parameters:
       - in: path
         name: format
@@ -45,10 +45,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/audioannotation{format}:
+      - annotator
+  /annotator/audioannotation{format}:
     get:
-      operationId: speech_read_0
+      operationId: annotator_read_0
       parameters:
       - in: path
         name: format
@@ -70,9 +70,9 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
-      operationId: speech_create_0
+      operationId: annotator_create_0
       parameters:
       - in: path
         name: format
@@ -82,11 +82,11 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/corpus{format}:
+      - annotator
+  /annotator/corpus{format}:
     get:
       description: List all corpora, or create a new corpus.
-      operationId: speech_read_1
+      operationId: annotator_read_1
       parameters:
       - in: path
         name: format
@@ -96,10 +96,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
       description: List all corpora, or create a new corpus.
-      operationId: speech_create_1
+      operationId: annotator_create_1
       parameters:
       - in: path
         name: format
@@ -109,10 +109,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/model{format}:
+      - annotator
+  /annotator/model{format}:
     get:
-      operationId: speech_read_2
+      operationId: annotator_read_2
       parameters:
       - in: path
         name: format
@@ -134,9 +134,9 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
-      operationId: speech_create_2
+      operationId: annotator_create_2
       parameters:
       - in: path
         name: format
@@ -146,11 +146,11 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/segment{format}:
+      - annotator
+  /annotator/segment{format}:
     get:
       description: List all segments, or create a new segment
-      operationId: speech_read_3
+      operationId: annotator_read_3
       parameters:
       - in: path
         name: format
@@ -166,10 +166,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
       description: List all segments, or create a new segment
-      operationId: speech_create_3
+      operationId: annotator_create_3
       parameters:
       - in: path
         name: format
@@ -179,10 +179,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/spantextannotation{format}:
+      - annotator
+  /annotator/spantextannotation{format}:
     get:
-      operationId: speech_read_4
+      operationId: annotator_read_4
       parameters:
       - in: path
         name: format
@@ -204,9 +204,9 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
-      operationId: speech_create_4
+      operationId: annotator_create_4
       parameters:
       - in: path
         name: format
@@ -216,10 +216,10 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech/textannotation{format}:
+      - annotator
+  /annotator/textannotation{format}:
     get:
-      operationId: speech_read_5
+      operationId: annotator_read_5
       parameters:
       - in: path
         name: format
@@ -241,9 +241,9 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
+      - annotator
     post:
-      operationId: speech_create_5
+      operationId: annotator_create_5
       parameters:
       - in: path
         name: format
@@ -253,8 +253,8 @@ paths:
           title: ''
           type: string
       tags:
-      - speech
-  /speech{format}:
+      - annotator
+  /annotator{format}:
     get:
       operationId: read
       parameters:
