@@ -84,7 +84,7 @@ python populate.py
 Refrshing the users page again, there should be a couple of corpora associated with your user.
 You can follow each corpus' link, or you can list all corpora by navigating to `http://localhost:8000/annotator/corpus/`.
 
-The same for listing all models (`http://localhost:8000//model/`) or all segments (`http://localhost:8000/annotator/segment/`) or all annotations (`http://localhost:8000/annotator/annotation/`).
+The same for listing all models (`http://localhost:8000/annotator/model/`) or all segments (`http://localhost:8000/annotator/segment/`) or all annotations (`http://localhost:8000/annotator/annotation/`).
 
 Let's go back to the list of all models (`http://localhost:8000/annotator/model/`). On the up right corner there another button named `filter`.
 This means that the models are searchable by some pre-defined filters (in this case `status` and `tags`) and submitting this filter also shows
