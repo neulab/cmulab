@@ -32,8 +32,10 @@ With the server running (`python manage.py runserver` on another terminal), let'
 
 This wil do the following:
 	
-	* Create a test_corpus that will have the audio and the `Text` SpanTextAnnotations, as parsed from the ELAN file. You can see the by navigating to `http://localhost:8000/annotator/corpus` 
-	* Obtain VAD annotations over the sample audio (it takes a while so we use a small audio sample of about ~2 seconds)
-	* Store the VAD annotation on the server's database. You can see the output by navigating to `http://localhost:8000/annotator/textannotation/` (this should be the only `TextAnnotation` in this case)
+* Create a test_corpus that will have the audio and the `Text` SpanTextAnnotations, as parsed from the ELAN file. You can see the by navigating to `http://localhost:8000/annotator/corpus` 
+
+* Obtain VAD annotations over the sample audio (it takes a while so we use a small audio sample of about ~2 seconds)
+
+* Store the VAD annotation on the server's database. You can see the output by navigating to `http://localhost:8000/annotator/textannotation/` (this should be the only `TextAnnotation` in this case)
 
 It should also produce an output ELAN file, but the sample that we started with doesn't play well  with pympi, it has an unknown ELAN spec, so it cannot be properly exported back.
