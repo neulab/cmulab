@@ -1,0 +1,7 @@
+django
+djangorestframework
+coreapi
+pyyaml
+django-filter
+markdown
+httpie

@@ -1,18 +1,8 @@
 # CMU Linguistic Annotation Backend
 
-Requirements:
-* python 3.6+
-* django 2.1
-* djangorestframework
-* coreapi
-* pyyaml
-* django-filter
-* markdown
-* httpie
-
 Install the requirements
 ~~~~
-pip install django djangorestframework coreapi pyyaml django-filter markdown httpie
+pip install -r requirements.txt
 ~~~~
 
 Starting up the server:
