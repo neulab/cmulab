@@ -118,7 +118,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/annotator/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'annotator/static')
 
 # This in order to add pagination
 REST_FRAMEWORK = {
@@ -126,4 +127,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
+
+
+# The correct MEDIA ROOT for development is below
+MEDIA_URL = '/annotator/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
 
