@@ -90,18 +90,21 @@ def load_tier(elan, tier_name, input_dir):
 
 
 
-def get_annotations(input_tier_data, input_tiers, wavfile, model_name):
+def get_annotations(input_tier_data, input_tiers, wavfile, corpus, segment_counter, model_name):
   """
   Read in data, send it to the server, and return the values
   
   Arguments:
-    input_tier_data: The data to be sent to the server
+    input_tier_data: Pointer to the parsed ELAN file 
+    input_tiers: The tiers to be sent to the server
+    wavfile: The path to the audio file
+    corpus: The corpus that the segments will be added to
     model_name: The model to use
 
   Returns:
     A list of tuples of annotations [(start, end, annot), (start, end, annot), ...]
   """
-  factory = APIRequestFactory()
+  #factory = APIRequestFactory()
   #user = User.objects.get(username='antonis')
   #view = AccountDetail.as_view()
   #request = factory.get('/')
@@ -110,13 +113,8 @@ def get_annotations(input_tier_data, input_tiers, wavfile, model_name):
 
   #serializer_context = {'request': Request(request),}
 
-
-  # Create a corpus with the input file
-  corpus=Corpus(name="test_corpus")
-  corpus.save()
-
   # Create segments for each
-  segments = [Segment(name=f"s{i}", corpus=corpus) for i,_ in enumerate(input_tier_data)]
+  segments = [Segment(name=f"s{segment_counter}_{i+1}", corpus=corpus) for i,_ in enumerate(input_tier_data)]
   for s in segments:
     s.save()
   
@@ -158,6 +156,12 @@ def get_annotations(input_tier_data, input_tiers, wavfile, model_name):
     return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
   
 
+#First create a corpus to put all the segments
+corpus=Corpus(name="test_corpus")
+corpus.save()
+
+segment_counter = 0
+
 for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
   print(input_file)
   basename = os.path.basename(input_file)
@@ -169,6 +173,7 @@ for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
   input_elan = pympi.Elan.Eaf(file_path=input_file)
 
   try:
+    segment_counter += 1
     print(f"ELAN Media descriptors: {input_elan.media_descriptors}")
     WAVFILE = os.path.join(args.input_dir, input_elan.media_descriptors[0]['RELATIVE_MEDIA_URL'])
     print(f"The wavefile for this segment is {WAVFILE}")
@@ -176,7 +181,7 @@ for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
     input_tier_data = [load_tier(input_elan, x, args.input_dir) for x in input_tiers]
     print(f"ELAN first 10 tier data: {input_tier_data[0][:10]}")
     
-    annotations = get_annotations(input_tier_data, input_tiers, WAVFILE, args.model_name)
+    annotations = get_annotations(input_tier_data, input_tiers, WAVFILE, corpus, segment_counter, args.model_name)
     input_elan.add_tier(args.output_tier)
     for val, start, end in annotations:
       input_elan.add_annotation(args.output_tier, start, end, value=val)
