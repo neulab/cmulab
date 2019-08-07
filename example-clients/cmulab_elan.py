@@ -90,7 +90,7 @@ def load_tier(elan, tier_name, input_dir):
 
 
 
-def get_annotations(input_tier_data, input_tiers, model_name):
+def get_annotations(input_tier_data, input_tiers, wavfile, model_name):
   """
   Read in data, send it to the server, and return the values
   
@@ -143,24 +143,19 @@ def get_annotations(input_tier_data, input_tiers, model_name):
   
   # This is the way to get all models
   # Mlmodel.objects.all()
-  # This is the way to filter out only the vad models and pick the first one
-  vad_model = Mlmodel.objects.filter(tags="vad")[0]
+  # This is the way to filter out only the models tagged as "vad" and pick the first one
+  # vad_model = Mlmodel.objects.filter(tags="vad")[0]
   
   # Now we get the actual model as defined by the BackendModels.
   # vad_model.modelTrainingSpec should be equal to the one below
-  # TODO(antonis): ensure this is the case
-  act_model = MLModels.KhanagaModel()
-  # TODO(antonis): retrieve the audio file from ELAN file or from the AudioAnnotation.
-  # For now this is hardcoded to my local file, because my ELAN spec does not properly define the audio file path
-  audio_file_path = "/Users/antonis/Sites/djapi/cmulab/example-clients/Sib_01-f/Sib_01-f-sample2.wav"
-  act_model.get_results(audio_file_path)
-  # Now the output of the model is in act_model.output
-  vad_annot=TextAnnotation(field_name="vad", text=act_model.output, segment=segments[0], status=TextAnnotation.GENERATED)
-  vad_annot.save()
- 
-
-  # For VAD we return the span which is from 0 to the end of the last segment
-  return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
+  if model_name == "phoneseg":
+    act_model = MLModels.KhanagaModel()
+    act_model.get_results(wavfile)
+    # Now the output of the model is in act_model.output
+    vad_annot=TextAnnotation(field_name="phoneseg", text=act_model.output, segment=segments[0], status=TextAnnotation.GENERATED)
+    vad_annot.save()
+    # For VAD we return the span which is from 0 to the end of the last segment
+    return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
   
 
 for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
@@ -175,15 +170,20 @@ for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
 
   try:
     print(f"ELAN Media descriptors: {input_elan.media_descriptors}")
-    print(f"ELAN Tier names: {input_elan.get_tier_names()}")
+    WAVFILE = os.path.join(args.input_dir, input_elan.media_descriptors[0]['RELATIVE_MEDIA_URL'])
+    print(f"The wavefile for this segment is {WAVFILE}")
+    print(f"ELAN Available Tier names: {input_elan.get_tier_names()}")
     input_tier_data = [load_tier(input_elan, x, args.input_dir) for x in input_tiers]
     print(f"ELAN first 10 tier data: {input_tier_data[0][:10]}")
-    annotations = get_annotations(input_tier_data, input_tiers, args.model_name)
+    
+    annotations = get_annotations(input_tier_data, input_tiers, WAVFILE, args.model_name)
     input_elan.add_tier(args.output_tier)
     for val, start, end in annotations:
       input_elan.add_annotation(args.output_tier, start, end, value=val)
     # TODO(antonis): The following fails with my weird ELAN file
     # But the produced vad annotation is stored in the database
     input_elan.to_file(output_file)
+    
   except IOError as e:
     print(f'WARNING: {e}')
+    

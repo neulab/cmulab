@@ -184,6 +184,9 @@ def get_results(filename):
 	# Read input
 	(rate,sig) = wav.read(filename)
 	print(f"The wav file has a {rate} rate and {sig.shape} length")
+	if len(sig.shape) > 1:
+		print(f"The file has stereo audio -- will use the left channel for VAD")
+		sig = sig[:,0]
 	(SE1,ACC1) = compute_ACC(sig,rate)
 	# Use Lowpass filter
 	order = 6
