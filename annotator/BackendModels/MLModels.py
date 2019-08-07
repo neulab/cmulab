@@ -1,6 +1,5 @@
-
-from .silence import silence
 from .khanaga import khanaga
+from .silence import silence
 
 class MLModel:
     def __init__(self):
