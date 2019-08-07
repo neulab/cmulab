@@ -12,7 +12,7 @@ First, install CMULAB overall by following the install instructions in the paren
 
 Given a directory of ELAN files, parse them and get additional annotations from `model_name` to be stored in `output_tier`.
 
-    python cmulab_elan.py input_directory input_tier output_directory output_tier model_name
+    python cmulab_elan.py --input_dir [dir] --input_tiers [tiers] --output_dir [dir] --output_tier [tier] --model_name [name]
 
 ## How to get annotations using the API
 
