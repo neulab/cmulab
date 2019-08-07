@@ -27,7 +27,7 @@ The last one will create entries for the available models, including the VAD mod
 
 With the server running (`python manage.py runserver` on another terminal), let's get annotations on the sample ELAN file.
 
-	  python cmulab_elan.py example-clients/Sib_01-f/ Text output EDU vad
+	  python cmulab_elan.py --input_dir Chatino/ --input_tiers en --output_dir output --output_tier VAD --model_name vad
 
 This wil do the following:
 	

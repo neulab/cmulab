@@ -31,12 +31,12 @@ class SilenceModel(MLModel):
 We provide the simple implementation of this in `annotator/BackendModels/MLModels-silence_added.py`
 
 With this implemented (do `cp annotator/BackendModels/MLModels-silence_added.py annotator/BackendModels/MLModels.py`) you can programmatically call it through a client.
-For example, take a look at `example-clients/cmulab_elan-silence_added.py` which uses the added VAD model.
+For example, take a look at `example-clients/cmulab_elan.py` which uses the added VAD model.
 
 e.g. running the following should produce two new .eaf files under `example-clients/output`, which should have a new `VAD` tier. 
 ~~~~
 cd example-clients
-python cmulab_elan-silence_added.py --input_dir Chatino/ --input_tiers en --output_dir output --output_tier VAD --model_name vad
+python cmulab_elan.py --input_dir Chatino/ --input_tiers en --output_dir output --output_tier VAD --model_name vad
 ~~~~
 If you navigate to `http://localhost:8000/annotator/corpus/`, you should see a new corpus named `test_corpus` with two segments.
 Each segment should include an AudioAnnotation with a pointer to the wavfile, SpanTextAnnotations that match the `en` tier of the original ELAN files, as well as the new TextAnnotation (with `field_name="vad"`) with the VAD borders.
