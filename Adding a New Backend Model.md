@@ -31,7 +31,14 @@ class SilenceModel(MLModel):
 We provide the simple implementation of this in `annotator/BackendModels/MLModels-silence_added.py`
 
 With this implemented (do `cp annotator/BackendModels/MLModels-silence_added.py annotator/BackendModels/MLModels.py`) you can programmatically call it through a client.
-For example, take a look at `example-clients/cmulab_elan-silence_added.py` which uses the added code.
+For example, take a look at `example-clients/cmulab_elan-silence_added.py` which uses the added VAD model.
+
+e.g. running the following should produce two new .eaf files under example-clients/output
+~~~~
+cd example-clients
+python cmulab_elan-silence_added.py --input_dir Chatino/ --input_tiers en --output_dir output --output_tier VAD --model_name vad
+~~~~
+
 
 You can also add an entry for this model in the `populate.py` script, e.g. by adding
 ~~~~
