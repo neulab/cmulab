@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2015-08-20T14:41:44-06:00" FORMAT="2.8" VERSION="2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.8.xsd">
+    <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///Users/hilariacruz/Dropbox/Chatino_GORILLA/Chatino_1/SJQ_20150616_HC_4.wav" MIME_TYPE="audio/x-wav" RELATIVE_MEDIA_URL="./SJQ_20150616_HC_4.wav"/>
+        <PROPERTY NAME="URN">urn:nl-mpi-tools-elan-eaf:00e2d2c3-9e2d-44e7-8eef-5fb04ac29c65</PROPERTY>
+        <PROPERTY NAME="lastUsedAnnotationId">20</PROPERTY>
+    </HEADER>
+    <TIME_ORDER>
+        <TIME_SLOT TIME_SLOT_ID="ts1" TIME_VALUE="993"/>
+        <TIME_SLOT TIME_SLOT_ID="ts2" TIME_VALUE="2818"/>
+        <TIME_SLOT TIME_SLOT_ID="ts3" TIME_VALUE="3688"/>
+        <TIME_SLOT TIME_SLOT_ID="ts4" TIME_VALUE="4441"/>
+        <TIME_SLOT TIME_SLOT_ID="ts5" TIME_VALUE="5168"/>
+        <TIME_SLOT TIME_SLOT_ID="ts6" TIME_VALUE="6954"/>
+        <TIME_SLOT TIME_SLOT_ID="ts7" TIME_VALUE="10246"/>
+        <TIME_SLOT TIME_SLOT_ID="ts8" TIME_VALUE="11318"/>
+        <TIME_SLOT TIME_SLOT_ID="ts9" TIME_VALUE="11810"/>
+        <TIME_SLOT TIME_SLOT_ID="ts10" TIME_VALUE="12849"/>
+        <TIME_SLOT TIME_SLOT_ID="ts11" TIME_VALUE="13102"/>
+        <TIME_SLOT TIME_SLOT_ID="ts12" TIME_VALUE="15024"/>
+        <TIME_SLOT TIME_SLOT_ID="ts13" TIME_VALUE="15773"/>
+        <TIME_SLOT TIME_SLOT_ID="ts14" TIME_VALUE="16786"/>
+        <TIME_SLOT TIME_SLOT_ID="ts15" TIME_VALUE="19048"/>
+        <TIME_SLOT TIME_SLOT_ID="ts16" TIME_VALUE="19938"/>
+        <TIME_SLOT TIME_SLOT_ID="ts17" TIME_VALUE="20302"/>
+        <TIME_SLOT TIME_SLOT_ID="ts18" TIME_VALUE="22425"/>
+        <TIME_SLOT TIME_SLOT_ID="ts19" TIME_VALUE="23262"/>
+        <TIME_SLOT TIME_SLOT_ID="ts20" TIME_VALUE="24125"/>
+    </TIME_ORDER>
+    <TIER ANNOTATOR="Hilaria Cruz" LINGUISTIC_TYPE_REF="default-lt" PARTICIPANT="Hilaria Cruz" TIER_ID="SJQ">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a1" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts2">
+                <ANNOTATION_VALUE>ni4 son14 nda20 wan24 ni2 ni4 son14 nda20 wan24 ni2 ni4 son14 nda20 wan24 ni2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a2" TIME_SLOT_REF1="ts3" TIME_SLOT_REF2="ts4">
+                <ANNOTATION_VALUE>ni4 son14 nda20 wan24 ni2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a3" TIME_SLOT_REF1="ts5" TIME_SLOT_REF2="ts6">
+                <ANNOTATION_VALUE>ni4 son14 nda20 wan24 ni2, ni4 son14 nda20 wan24 ni2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a4" TIME_SLOT_REF1="ts7" TIME_SLOT_REF2="ts8">
+                <ANNOTATION_VALUE>Ka24 tyi20           ton1  ne1</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a5" TIME_SLOT_REF1="ts9" TIME_SLOT_REF2="ts10">
+                <ANNOTATION_VALUE>Ka24 tyi20          tqen24 ne2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a6" TIME_SLOT_REF1="ts11" TIME_SLOT_REF2="ts12">
+                <ANNOTATION_VALUE>Ka24 kqu1       ni1 Ka24  klu1       ni1,</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a7" TIME_SLOT_REF1="ts13" TIME_SLOT_REF2="ts14">
+                <ANNOTATION_VALUE>Ka24 tykwa1            ni1,</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a8" TIME_SLOT_REF1="ts15" TIME_SLOT_REF2="ts16">
+                <ANNOTATION_VALUE>Ka24 tyqin32   ni1</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a9" TIME_SLOT_REF1="ts17" TIME_SLOT_REF2="ts18">
+                <ANNOTATION_VALUE>Ka24 tyi20           ton1, Ka24 tyi20           tqen24,</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a10" TIME_SLOT_REF1="ts19" TIME_SLOT_REF2="ts20">
+                <ANNOTATION_VALUE>Ka24 tyi20           tqen24</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER ANNOTATOR="Hilaria Cruz" LINGUISTIC_TYPE_REF="pos" PARENT_REF="SJQ" PARTICIPANT="Hilaria Cruz" TIER_ID="pos"/>
+    <TIER ANNOTATOR="Hilaria Cruz" LINGUISTIC_TYPE_REF="pos" PARENT_REF="SJQ" PARTICIPANT="Hilaria Cruz" TIER_ID="en">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a11" ANNOTATION_REF="a1">
+                <ANNOTATION_VALUE>˜hey what's up,  what's up,  what's up </ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a12" ANNOTATION_REF="a2">
+                <ANNOTATION_VALUE> what's up</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a13" ANNOTATION_REF="a3">
+                <ANNOTATION_VALUE> what's up,  what's up</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a14" ANNOTATION_REF="a4">
+                <ANNOTATION_VALUE>Now they are about to rise up</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a15" ANNOTATION_REF="a5">
+                <ANNOTATION_VALUE>Now they are about to establish themselves</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a16" ANNOTATION_REF="a6">
+                <ANNOTATION_VALUE>Now they are about to grow, Now they are about to thrive</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a17" ANNOTATION_REF="a7">
+                <ANNOTATION_VALUE>Now they are about to sit up</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a18" ANNOTATION_REF="a8">
+                <ANNOTATION_VALUE>Now they are about to establish themselves</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a19" ANNOTATION_REF="a9">
+                <ANNOTATION_VALUE>They are about to rise up, They are about to establish themselves</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a20" ANNOTATION_REF="a10">
+                <ANNOTATION_VALUE> They are about to establish themselves</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER ANNOTATOR="Hilaria Cruz" DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="en" PARENT_REF="SJQ" PARTICIPANT="Hilaria Cruz" TIER_ID="note"/>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="default-lt" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="pos" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="en" TIME_ALIGNABLE="false"/>
+    <LOCALE COUNTRY_CODE="US" LANGUAGE_CODE="en"/>
+    <CONSTRAINT DESCRIPTION="Time subdivision of parent annotation's time interval, no time gaps allowed within this interval" STEREOTYPE="Time_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="Symbolic subdivision of a parent annotation. Annotations refering to the same parent are ordered" STEREOTYPE="Symbolic_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="1-1 association with a parent annotation" STEREOTYPE="Symbolic_Association"/>
+    <CONSTRAINT DESCRIPTION="Time alignable annotations within the parent annotation's time interval, gaps are allowed" STEREOTYPE="Included_In"/>
+</ANNOTATION_DOCUMENT>

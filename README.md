@@ -1,8 +1,9 @@
 # CMU Linguistic Annotation Backend
 
-Install the requirements
+Install the requirements and setup the environment for development
 ~~~~
 pip install -r requirements.txt
+python setup.py develop
 ~~~~
 
 Starting up the server:

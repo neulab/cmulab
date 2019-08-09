@@ -4,7 +4,7 @@ A simple client to add annotations to all the ELAN files in a directory.
 
 ## Preparation
 
-First, install CMULAB client API and other requirements
+First, install CMULAB overall by following the install instructions in the parent directory. Then install the requirements for the client from this directory
 
     pip install -r requirements.txt
 
@@ -12,23 +12,22 @@ First, install CMULAB client API and other requirements
 
 Given a directory of ELAN files, parse them and get additional annotations from `model_name` to be stored in `output_tier`.
 
-    python cmulab_elan.py input_directory input_tier output_directory output_tier model_name
-
+    python cmulab_elan.py --input_dir [dir] --input_tiers [tiers] --output_dir [dir] --output_tier [tier] --model_name [name]
 
 ## How to get annotations using the API
 
 If you haven't already, set up a server by running the following
 	
-	python manage.py makemigrations annotator
-	python manage.py migrate
-	python manage.py createsuperuser
-	python populate.py
+	  python manage.py makemigrations annotator
+	  python manage.py migrate
+	  python manage.py createsuperuser
+	  python populate.py
 
 The last one will create entries for the available models, including the VAD model that we will use.
 
 With the server running (`python manage.py runserver` on another terminal), let's get annotations on the sample ELAN file.
 
-	py cmulab_elan.py example-clients/Sib_01-f/ Text output EDU vad
+	  python cmulab_elan.py --input_dir Chatino/ --input_tiers en --output_dir output --output_tier VAD --model_name vad
 
 This wil do the following:
 	
