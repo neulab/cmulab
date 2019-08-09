@@ -1,5 +1,6 @@
 from .khanaga import khanaga
 from .silence import silence
+import requests
 
 class MLModel:
     def __init__(self):
@@ -43,6 +44,22 @@ class SilenceModel(MLModel):
     def get_results(self, input_file, threshold=0.02):
         results = silence.get_silence(input_file, threshold)
         self.output = ' '.join(map(str, results))
+
+
+class TranscriptionModel(MLModel):
+    def __init__(self):
+        # Give a descriptive name to your model
+        self.name = "Xinjian English transcription model" 
+        # This will be useful when we have multiple versions of the same model
+        self.trained_on_date = "August 2019" 
+        # This will store the output of the model for a given segment
+        self.output = '' 
+
+    def get_results(self, input_file):
+        url = 'https://www.dictate.app/phone/english'
+        files = {'file': (input_file, open(input_file, 'rb')),}
+        r = requests.post(url, files=files)
+        self.output = r.text
 
 
 
