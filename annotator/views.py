@@ -1,4 +1,4 @@
-
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render
 
@@ -116,7 +116,7 @@ class SegmentsInCorpus(APIView):
 		serializer = SegmentSerializer(segment, many=True)
 		return Response(serializer.data)
 
-
+@login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT'])
 def addsegmentstocorpus(request, pk, s_list):
 	try:
@@ -149,6 +149,7 @@ def addsegmentstocorpus(request, pk, s_list):
 			serializer.save()
 		return Response(status=status.HTTP_202_ACCEPTED)
 
+@login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT'])
 def removesegmentsfromcorpus(request, pk, s_list):
 	try:
@@ -178,6 +179,7 @@ def removesegmentsfromcorpus(request, pk, s_list):
 		except:
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@login_required(login_url='/annotator/login/')
 @api_view(['POST'])
 def trainModel(request, pk):
 	try:
@@ -188,7 +190,7 @@ def trainModel(request, pk):
 	if request.method == 'POST':
 		return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-
+@login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT'])
 def annotate(request, mk, sk):
 	#mk is the model id
@@ -255,7 +257,7 @@ class AnnotationsInSegment(APIView):
 		return Response(serializer.data)
 
 
-
+@login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT'])
 def addannotationstosegment(request, pk, s_list):
 	try:
@@ -290,6 +292,7 @@ def addannotationstosegment(request, pk, s_list):
 			serializer.save()
 		return Response(status=status.HTTP_202_ACCEPTED)
 
+@login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT'])
 def removeannotationsfromsegment(request, pk, s_list):
 	try:
@@ -355,42 +358,50 @@ class ModelDetail(generics.RetrieveUpdateAPIView):
 
 
 class AnnotationList(generics.ListCreateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = Annotation.objects.all()
 	serializer_class = AnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
 	filterset_fields = ('status', 'segment',)
 
 class AnnotationDetail(generics.RetrieveUpdateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = Annotation.objects.all()
 	serializer_class = AnnotationSerializer
 
 class AudioAnnotationList(generics.ListCreateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = AudioAnnotation.objects.all()
 	serializer_class = AudioAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
 	filterset_fields = ('status', 'segment', )
 
 class AudioAnnotationDetail(generics.RetrieveUpdateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = AudioAnnotation.objects.all()
 	serializer_class = AudioAnnotationSerializer
 
 class TextAnnotationList(generics.ListCreateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = TextAnnotation.objects.all()
 	serializer_class = TextAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
 	filterset_fields = ('status', 'segment',)
 
 class TextAnnotationDetail(generics.RetrieveUpdateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = TextAnnotation.objects.all()
 	serializer_class = TextAnnotationSerializer
 
 class SpanTextAnnotationList(generics.ListCreateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = SpanTextAnnotation.objects.all()
 	serializer_class = SpanTextAnnotationSerializer
 	filter_backends = (DjangoFilterBackend,)
 	filterset_fields = ('status', 'segment',)
 
 class SpanTextAnnotationDetail(generics.RetrieveUpdateAPIView):
+	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 	queryset = SpanTextAnnotation.objects.all()
 	serializer_class = SpanTextAnnotationSerializer
 
