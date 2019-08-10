@@ -1,5 +1,5 @@
 from .khanaga import khanaga
-from .silence import silence
+from .vad import vad
 import requests
 
 class MLModel:
@@ -31,8 +31,7 @@ class KhanagaModel(MLModel):
         results = khanaga.get_results(input_file) 
         self.output = ' '.join(map(str, results))
 
-
-class SilenceModel(MLModel):
+class VADModel(MLModel):
     def __init__(self):
         # Give a descriptive name to your model
         self.name = "simple VAD model" 
@@ -41,9 +40,12 @@ class SilenceModel(MLModel):
         # This will store the output of the model for a given segment
         self.output = '' 
 
-    def get_results(self, input_file, threshold=0.02):
-        results = silence.get_silence(input_file, threshold)
-        self.output = ' '.join(map(str, results))
+    def get_results(self, input_file, threshold=0.2, window=0.5):
+        v = vad.VoiceActivityDetector(input_file, window=window, threshold=threshold)
+        raw_detection = v.detect_speech()
+        speech_labels = v.convert_windows_to_readible_labels(raw_detection)    
+        # This returns a list of dicts that mark the start/end of active spans
+        self.output = speech_labels
 
 
 class TranscriptionModel(MLModel):

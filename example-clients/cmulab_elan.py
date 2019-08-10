@@ -147,14 +147,21 @@ def get_annotations(input_tier_data, input_tiers, wavfile, corpus, segment_count
   # Now we get the actual model as defined by the BackendModels.
   # vad_model.modelTrainingSpec should be equal to the one below
   if model_name == "vad":
-    act_model = MLModels.SilenceModel()
-    threshold = 0.04
-    act_model.get_results(wavfile, threshold)
+    act_model = MLModels.VADModel()
+    window=0.5 # half a second
+    threshold = 0.3 # 33% of the signal's energy is used as a threshold
+    act_model.get_results(wavfile, threshold, window)
     # Now the output of the model is in act_model.output
-    vad_annot=TextAnnotation(field_name="vad", text=act_model.output, segment=segments[0], status=TextAnnotation.GENERATED)
-    vad_annot.save()
-    # For VAD we return the span which is from 0 to the end of the last segment
-    return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
+    # which is a list of dictionaries
+    out = []
+    for d in act_model.output:
+      # Save the span text annotations
+      vad_annot=SpanTextAnnotation(field_name="vad", start=d['speech_begin'], end=d['speech_end'], text="v", segment=segments[0], status=TextAnnotation.GENERATED)
+      vad_annot.save()
+      # This should be in milliseconds
+      out.append((vad_annot.text, int(vad_annot.start*1000), int(vad_annot.end*1000)))
+    # Return the spantext annotations
+    return out
   elif model_name == "transcription":
     act_model = MLModels.TranscriptionModel()
     act_model.get_results(wavfile)
@@ -162,7 +169,7 @@ def get_annotations(input_tier_data, input_tiers, wavfile, corpus, segment_count
     vad_annot=TextAnnotation(field_name="phones", text=act_model.output, segment=segments[0], status=TextAnnotation.GENERATED)
     vad_annot.save()
     # We return the span which is from 0 to the end of the last segment
-    return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
+    return [(vad_annot.text, 0, int(input_tier_data[0][-1][1]*1000))]
   elif model_name == "phoneseg":
     act_model = MLModels.KhanagaModel()
     act_model.get_results(wavfile)
@@ -170,7 +177,7 @@ def get_annotations(input_tier_data, input_tiers, wavfile, corpus, segment_count
     vad_annot=TextAnnotation(field_name="phoneseg", text=act_model.output, segment=segments[0], status=TextAnnotation.GENERATED)
     vad_annot.save()
     # For VAD we return the span which is from 0 to the end of the last segment
-    return [(vad_annot.text, 0, input_tier_data[0][-1][1])]
+    return [(vad_annot.text, 0, int(input_tier_data[0][-1][1]*1000))]
   
 
 #First create a corpus to put all the segments

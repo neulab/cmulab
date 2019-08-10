@@ -38,3 +38,9 @@ This wil do the following:
 * Store the VAD annotation on the server's database. You can see the output by navigating to `http://localhost:8000/annotator/textannotation/` (this should be the only `TextAnnotation` in this case)
 
 It should also produce an output ELAN file, but the sample that we started with doesn't play well  with pympi, it has an unknown ELAN spec, so it cannot be properly exported back.
+
+## Example Data (Chatino)
+
+The two example .eaf and .wav files are in Eastern Chatino, taken from the Eastern Chatino (CTP) Speech Corpus
+for GORILLA (http://gorilla.linguistlist.org/)[website]
+
