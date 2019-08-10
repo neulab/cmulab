@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'annotator.apps.AnnotatorConfig',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = 'cmulab.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -63,6 +64,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends', 
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -81,6 +84,24 @@ DATABASES = {
     }
 }
 
+
+AUTHENTICATION_BACKENDS = (
+ #'social_core.backends.open_id.OpenIdAuth',  # for Google authentication
+ #'social_core.backends.google.GoogleOpenId',  # for Google authentication
+ 'social_core.backends.google.GoogleOAuth2',  # for Google authentication
+ 'social_core.backends.github.GithubOAuth2',  # for Github authentication
+ 
+ 'django.contrib.auth.backends.ModelBackend',
+)
+
+LOGIN_URL = '/auth/login/google-oauth2/'
+LOGIN_REDIRECT_URL = '/annotator/'
+LOGOUT_REDIRECT_URL = '/'
+
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '584574873289-jtu5hm76j9fiml6neippg823j2l6ts2f.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '53yF7QrgRYnJJxNgrbzVH_Ps'
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

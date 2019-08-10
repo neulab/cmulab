@@ -1,14 +1,20 @@
+from django.conf import settings
+from django.contrib.auth import views as auth_views
+#from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import path
+from django.conf.urls import include
+
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.schemas import get_schema_view
+
 from annotator import views
 
 schema_view = get_schema_view(title='Pastebin API')
 
 urlpatterns = [
     path('schema/', schema_view, name='schema'),
-    #path('annotator/', views.snippet_list),
     path('annotator/', views.api_root),
+    path('annotator/', include('django.contrib.auth.urls')),
     path('annotator/model/', views.ModelList.as_view(), name='model-list'),
     path('annotator/model/<int:pk>/', views.ModelDetail.as_view(), name='model-detail'),
     path('annotator/model/<int:pk>/train/', views.trainModel, name='model-train'),
@@ -38,6 +44,11 @@ urlpatterns = [
     path('annotator/spantextannotation/<int:pk>/', views.SpanTextAnnotationDetail.as_view(), name='spantextannotation-detail'),
     path('users/', views.UserList.as_view(), name='user-list'),
 	path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
+
+    # This will ask for authentication upon visiting the first page
+    path('annotator/auth/', include('social_django.urls', namespace='social')),
+    #path('annotator/login/', auth_views.LoginView.as_view(), {'next_page': settings.LOGIN_REDIRECT_URL}, name='login'),
+    #path('annotator/logout/', auth_views.LogoutView.as_view(), {'next_page': settings.LOGOUT_REDIRECT_URL}, name='logout'),
     
 
 ]
