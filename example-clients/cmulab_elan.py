@@ -214,8 +214,17 @@ for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
     input_elan.add_tier(args.output_tier)
     for val, start, end in annotations:
       input_elan.add_annotation(args.output_tier, start, end, value=val)
-    # TODO(antonis): The following fails with my weird ELAN file
-    # But the produced vad annotation is stored in the database
+
+    # Make sure that the wavfile can be found by the new .eaf file
+    if args.input_dir != args.output_dir:
+      # ... by providing the correct absolute and relative path
+      N = args.output_dir.count('/')
+      if args.output_dir[-1] != '/':
+        N += 1
+      input_elan.media_descriptors[0]['RELATIVE_MEDIA_URL'] = '../'*N + WAVFILE
+      input_elan.media_descriptors[0]['MEDIA_URL'] = 'file://' + os.path.join(os.getcwd(), WAVFILE)
+
+    # Produce the output elan file
     input_elan.to_file(output_file)
     
   except IOError as e:
