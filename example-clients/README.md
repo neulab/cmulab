@@ -42,5 +42,5 @@ It should also produce an output ELAN file, but the sample that we started with 
 ## Example Data (Chatino)
 
 The two example .eaf and .wav files are in Eastern Chatino, taken from the Eastern Chatino (CTP) Speech Corpus
-for GORILLA (http://gorilla.linguistlist.org/)[website]
+for GORILLA (http://gorilla.linguistlist.org/).
 
