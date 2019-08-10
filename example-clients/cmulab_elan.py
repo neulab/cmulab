@@ -39,15 +39,19 @@ from annotator.BackendModels import MLModels
 parser = argparse.ArgumentParser(description='Script retrieves schedules from a given server')
 # Add arguments
 parser.add_argument('--input_dir', type=str, default="/Users/antonis/research/cmulab/example-clients/Sib_01-f/", help='The directory full of elan files to input')
-parser.add_argument('--input_tiers', default="Text", type=str, help='The tier or tiers to input (multiple tiers separated by comma. "media[ID]" is a special word that refers to the media file, where ID can optionally specify which ID for the media descriptor.)')
+parser.add_argument('--input_tiers', type=str, help='The tier or tiers to input (multiple tiers separated by comma. "media[ID]" is a special word that refers to the media file, where ID can optionally specify which ID for the media descriptor.)')
 parser.add_argument('--output_dir', default="output", type=str, help='The directory to output to')
-parser.add_argument('--output_tier', default="EDU", type=str, help='The output tier')
-parser.add_argument('--model_name', default="vad", type=str, help='The model name to use')
+parser.add_argument('--output_tier', default="vad", type=str, help='The output tier')
+parser.add_argument('--model_name', default="vad", choices=['vad', 'transcription', 'phoneseg'], type=str, help='The model name to use')
 parser.add_argument('--overwrite', action='store_true', help='Whether to overwrite existing files in the output directory')
 
 #args = parser.parse_args()
 args, unknown = parser.parse_known_args()
-input_tiers = args.input_tiers.split(',')
+if args.input_tiers:
+  input_tiers = args.input_tiers.split(',')
+else:
+  input_tiers = [""]
+
 
 if not os.path.isdir(args.output_dir):
   os.mkdir(args.output_dir)
@@ -84,7 +88,8 @@ def load_tier(elan, tier_name, input_dir):
       tier_data = elan.get_annotation_data_for_tier(tier_name)
       return tier_data
     except KeyError:
-      print(f"Didn't find tier {tier_name} in the elan file")
+      if tier_name:
+        print(f"Didn't find tier {tier_name} in the elan file")
       return -1
     #raise NotImplementedError('Probably want to extract this and convert it into (annotation, start, end) notation')
 
@@ -134,9 +139,10 @@ def get_annotations(input_tier_data, input_tiers, wavfile, corpus, segment_count
 
   # Now the text annotations
   for j,input_tier in enumerate(input_tier_data):
-    for i,a in enumerate(input_tier):
-      annot=SpanTextAnnotation(field_name=f"{input_tiers[j]}", segment=segments[j], text=f"{a[2]}", start=a[0], end=a[1], status=TextAnnotation.GENERATED)
-      annot.save()
+    if input_tier != -1: # if the tier wasn't found in the elan file, it will be -1
+      for i,a in enumerate(input_tier):
+        annot=SpanTextAnnotation(field_name=f"{input_tiers[j]}", segment=segments[j], text=f"{a[2]}", start=a[0], end=a[1], status=TextAnnotation.GENERATED)
+        annot.save()
   # Now the database is populated
   
   # This is the way to get all models
@@ -203,7 +209,6 @@ for input_file in glob.glob(f'{args.input_dir}/*.eaf'):
     print(f"The wavefile for this segment is {WAVFILE}")
     print(f"ELAN Available Tier names: {input_elan.get_tier_names()}")
     input_tier_data = [load_tier(input_elan, x, args.input_dir) for x in input_tiers]
-    print(f"ELAN first 10 tier data: {input_tier_data[0][:10]}")
     
     annotations = get_annotations(input_tier_data, input_tiers, WAVFILE, corpus, segment_counter, args.model_name)
     input_elan.add_tier(args.output_tier)
