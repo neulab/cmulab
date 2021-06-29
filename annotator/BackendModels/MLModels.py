@@ -1,5 +1,7 @@
+import sys
 from .khanaga import khanaga
 from .vad import vad
+from .allosaurus import allosaurus_model
 import requests
 
 class MLModel:
@@ -48,27 +50,34 @@ class VADModel(MLModel):
         self.output = speech_labels
 
 
+# class TranscriptionModel(MLModel):
+    # def __init__(self):
+        # # Give a descriptive name to your model
+        # self.name = "Xinjian English transcription model" 
+        # # This will be useful when we have multiple versions of the same model
+        # self.trained_on_date = "August 2019" 
+        # # This will store the output of the model for a given segment
+        # self.output = '' 
+
+    # def get_results(self, input_file):
+        # url = 'https://www.dictate.app/phone/english'
+        # files = {'file': (input_file, open(input_file, 'rb')),}
+        # r = requests.post(url, files=files)
+        # self.output = r.text
+
+# class AllosaurusModel(MLModel):
 class TranscriptionModel(MLModel):
     def __init__(self):
         # Give a descriptive name to your model
-        self.name = "Xinjian English transcription model" 
-        # This will be useful when we have multiple versions of the same model
-        self.trained_on_date = "August 2019" 
+        self.name = "Allosaurus phoneme recognizer"
         # This will store the output of the model for a given segment
-        self.output = '' 
+        self.output = ''
 
     def get_results(self, input_file):
-        url = 'https://www.dictate.app/phone/english'
-        files = {'file': (input_file, open(input_file, 'rb')),}
-        r = requests.post(url, files=files)
-        self.output = r.text
+        self.output = allosaurus_model.recognize(input_file)
 
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    print("Running: AllosaurusModel " + sys.argv[1])
+    am = TranscriptionModel()
+    am.get_results(input_file=sys.argv[1])
+    print(am.output)
