@@ -25,6 +25,12 @@ from annotator.serializers import AnnotationSerializer, AudioAnnotationSerialize
 
 from annotator.BackendModels import MLModels
 
+# import django_rq
+import subprocess
+import traceback
+
+from django.core.files.storage import FileSystemStorage
+
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
@@ -190,8 +196,12 @@ def trainModel(request, pk):
 	if request.method == 'POST':
 		return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-@login_required(login_url='/annotator/login/')
-@api_view(['GET', 'PUT'])
+
+def subprocess_call():
+	subprocess.run(['sleep', '5'])
+
+# @login_required(login_url='/annotator/login/')
+@api_view(['GET', 'PUT', 'POST'])
 def annotate(request, mk, sk):
 	#mk is the model id
 	#sk is the segment id	
@@ -212,6 +222,8 @@ def annotate(request, mk, sk):
 
 	elif request.method == 'PUT':
 		try:
+			# TODO fixme
+			# django_rq.enqueue(subprocess_call)
 			# First retrieve the model details
 			modeltag = model.tags
 			#audio_file_path = segment.
@@ -231,6 +243,24 @@ def annotate(request, mk, sk):
 				return Response(status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			print(e)
+			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+	elif request.method == 'POST':
+		try:
+			modeltag = model.tags
+			if modeltag == 'transcription':
+				# TODO fixme: do not hardcode
+				trans_model = MLModels.TranscriptionModel()
+				# audio_file = '/home/user/Downloads/delete/DSTA-project/ELAN_6-1/lib/app/extensions/allosaurus-elan/test/allosaurus.wav'
+				# audio_file = request.FILES['file']
+				fs = FileSystemStorage()
+				for audio_file in request.FILES.getlist('file'):
+					filename = fs.save(audio_file.name, audio_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					trans_model.get_results(uploaded_file_path)
+				return Response({"transcription": trans_model.output}, status=status.HTTP_202_ACCEPTED)
+		except Exception as e:
+			traceback.print_exc()
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

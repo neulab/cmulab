@@ -4,6 +4,22 @@ from .vad import vad
 from .allosaurus import allosaurus_model
 import requests
 
+
+import importlib
+import pkgutil
+import sys
+import annotator.BackendModels
+
+# TODO fixme
+
+def iter_namespace(ns_pkg):
+    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+
+def load_plugins():
+    for _, name, _ in iter_namespace(annotator.BackendModels):
+        importlib.import_module(name)
+
+
 class MLModel:
     def __init__(self):
         self.name = "generic"
