@@ -1,5 +1,4 @@
-django==2.1.5
-django-rq
+django==2.1
 djangorestframework
 coreapi
 pyyaml
@@ -9,3 +8,4 @@ httpie
 numpy>1.16.0
 scipy==1.2.1
 requests==2.21.0
+allosaurus
