@@ -28,6 +28,10 @@ from annotator.BackendModels import MLModels
 # import django_rq
 import subprocess
 import traceback
+import json
+import pydub
+import shutil
+import tempfile
 
 from django.core.files.storage import FileSystemStorage
 
@@ -248,17 +252,39 @@ def annotate(request, mk, sk):
 		try:
 			modeltag = model.tags
 			if modeltag == 'transcription':
+				segments = json.loads(request.POST.get("segments", "[]"))
+				print(json.dumps(segments))
 				# TODO fixme: do not hardcode
 				trans_model = MLModels.TranscriptionModel()
 				# audio_file = '/home/user/Downloads/delete/DSTA-project/ELAN_6-1/lib/app/extensions/allosaurus-elan/test/allosaurus.wav'
 				# audio_file = request.FILES['file']
 				fs = FileSystemStorage()
+				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
 				for audio_file in request.FILES.getlist('file'):
 					filename = fs.save(audio_file.name, audio_file)
 					uploaded_file_path = fs.path(filename)
 					print('absolute file path', uploaded_file_path)
-					trans_model.get_results(uploaded_file_path)
-				return Response({"transcription": trans_model.output}, status=status.HTTP_202_ACCEPTED)
+					if not uploaded_file_path.endswith('.wav'):
+						converted_audio_file = tempfile.NamedTemporaryFile(suffix = '.wav')
+						subprocess.call([ffmpeg, '-y', '-v', '0', '-i', uploaded_file_path,'-ac', '1', '-ar', '16000', '-sample_fmt', 's16', '-acodec', 'pcm_s16le', converted_audio_file.name])
+					else:
+						converted_audio_file = open(uploaded_file_path, mode='rb')
+					converted_audio = pydub.AudioSegment.from_file(converted_audio_file, format = 'wav')
+					response_data = []
+					if not segments:
+						segments = [{'start': 0, 'end': len(converted_audio), 'value': ""}]
+					for annotation in segments:
+						annotation['clip'] = tempfile.NamedTemporaryFile(suffix = '.wav', dir = tmp_dir, delete=False)
+						clip = converted_audio[annotation['start']:annotation['end']]
+						clip.export(annotation['clip'], format = 'wav')
+						print(annotation['clip'].name)
+						trans_model.get_results(annotation['clip'].name)
+						response_data.append({
+							"start": annotation['start'],
+							"end": annotation['end'],
+							"transcription": trans_model.output
+						})
+				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			traceback.print_exc()
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

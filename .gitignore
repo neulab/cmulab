@@ -4,3 +4,4 @@ speech/migrations/
 *.swp
 cmulab.egg-info/
 *.pyc
+annotator/media/
