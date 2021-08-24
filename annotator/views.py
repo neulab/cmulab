@@ -266,7 +266,11 @@ def annotate(request, mk, sk):
 					print('absolute file path', uploaded_file_path)
 					if not uploaded_file_path.endswith('.wav'):
 						converted_audio_file = tempfile.NamedTemporaryFile(suffix = '.wav')
-						subprocess.call([ffmpeg, '-y', '-v', '0', '-i', uploaded_file_path,'-ac', '1', '-ar', '16000', '-sample_fmt', 's16', '-acodec', 'pcm_s16le', converted_audio_file.name])
+						ffmpeg = shutil.which('ffmpeg')
+						if ffmpeg:
+							subprocess.call([ffmpeg, '-y', '-v', '0', '-i', uploaded_file_path,'-ac', '1', '-ar', '16000', '-sample_fmt', 's16', '-acodec', 'pcm_s16le', converted_audio_file.name])
+						else:
+							return Response("only WAV files are supported!", status=status.HTTP_400_BAD_REQUEST)
 					else:
 						converted_audio_file = open(uploaded_file_path, mode='rb')
 					converted_audio = pydub.AudioSegment.from_file(converted_audio_file, format = 'wav')
