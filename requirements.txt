@@ -11,3 +11,4 @@ requests==2.21.0
 allosaurus
 pydub
 django-allauth
+django-crispy-forms

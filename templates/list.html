@@ -2,10 +2,13 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         <title>Upload Files</title>
     </head>
 
     <body>
+        {% load crispy_forms_tags %}
+        <div style="width: 500px; margin: auto;">
         <p>You are logged in as {{ user.username }}. <a href="/annotator/logout">Logout</a></p>
 
         <!-- List of uploaded documents -->
@@ -24,15 +27,17 @@
             {% csrf_token %}
             <p>{{ form.non_field_errors }}</p>
 
-            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+            <!--<p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>-->
 
             <p>
-                {{ form.docfile.errors }}
-                {{ form.docfile }}
+                <!--{{ form.docfile.errors }}-->
+                <!--{{ form.docfile }}-->
+                {{ form|crispy }}
             </p>
 
             <p><input type="submit" value="Upload"/></p>
         </form>
+        </div>
     </body>
 
 </html>
