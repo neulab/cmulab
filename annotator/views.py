@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 
 from rest_framework import generics
 from rest_framework import status
@@ -24,6 +24,8 @@ from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSe
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 from annotator.BackendModels import MLModels
+from annotator.models import Document
+from annotator.forms import DocumentForm
 
 # import django_rq
 import subprocess
@@ -294,6 +296,27 @@ def annotate(request, mk, sk):
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required(login_url='')
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.owner = request.user
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('list'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.filter(owner=request.user)
+
+
+    # Render list page with the documents and the form
+    return render(request, 'list.html', {'documents': documents, 'form': form})
 
 
 class AnnotationsInSegment(APIView):

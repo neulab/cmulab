@@ -1,0 +1,13 @@
+{% load socialaccount %}
+<html>
+<body>
+<h1>Login Page </h1>
+{% if user.is_authenticated %}
+<p>You are logged in as {{ user.username }}. <a href="/annotator/logout">Logout</a></p>
+<p><a href="/annotator/upload">Upload data</a></p>
+{% else %}
+  <p><a href="annotator/login">Login (Django)</a></p>
+  <p><a href="{% provider_login_url 'google' %}">Login (Google)</a></p>
+{% endif %}
+</body>
+</html>

@@ -6,7 +6,11 @@ from django.db import models
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from django.conf import settings
 
+class Document(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, default=1, null = True, on_delete=models.CASCADE)
+    docfile = models.FileField(upload_to='documents/%Y/%m/%d')
 
 class Mlmodel(models.Model):
 	'''

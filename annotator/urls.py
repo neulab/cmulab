@@ -37,9 +37,8 @@ urlpatterns = [
     path('annotator/spantextannotation/', views.SpanTextAnnotationList.as_view(), name='spantextannotation-list'),
     path('annotator/spantextannotation/<int:pk>/', views.SpanTextAnnotationDetail.as_view(), name='spantextannotation-detail'),
     path('users/', views.UserList.as_view(), name='user-list'),
-	path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
-    
-
+    path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
+    path('annotator/upload/', views.list, name='list'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
