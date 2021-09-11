@@ -9,7 +9,10 @@
     <body>
         {% load crispy_forms_tags %}
         <div style="width: 500px; margin: auto;">
+        <p/>
         <p>You are logged in as {{ user.username }}. <a href="/annotator/logout">Logout</a></p>
+        <iframe style="width:100%;" src="/annotator/static/cmu-irb-online-consent.html"></iframe>
+
 
         <!-- List of uploaded documents -->
         {% if documents %}
