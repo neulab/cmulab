@@ -35,7 +35,19 @@ import pydub
 import shutil
 import tempfile
 
+
 from django.core.files.storage import FileSystemStorage
+
+import sys
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
+backend_models = {}
+for plugin in entry_points(group='cmulab.plugins'):
+    backend_models[plugin.name] = plugin.load()
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -257,7 +269,8 @@ def annotate(request, mk, sk):
 				segments = json.loads(request.POST.get("segments", "[]"))
 				print(json.dumps(segments))
 				# TODO fixme: do not hardcode
-				trans_model = MLModels.TranscriptionModel()
+				# trans_model = MLModels.TranscriptionModel()
+				trans_model = backend_models["allosaurus"]
 				# audio_file = '/home/user/Downloads/delete/DSTA-project/ELAN_6-1/lib/app/extensions/allosaurus-elan/test/allosaurus.wav'
 				# audio_file = request.FILES['file']
 				fs = FileSystemStorage()
@@ -284,11 +297,12 @@ def annotate(request, mk, sk):
 						clip = converted_audio[annotation['start']:annotation['end']]
 						clip.export(annotation['clip'], format = 'wav')
 						print(annotation['clip'].name)
-						trans_model.get_results(annotation['clip'].name)
+						# trans_model.get_results(annotation['clip'].name)
+						trans_model_output = trans_model(annotation['clip'].name)
 						response_data.append({
 							"start": annotation['start'],
 							"end": annotation['end'],
-							"transcription": trans_model.output
+							"transcription": trans_model_output
 						})
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
