@@ -34,6 +34,7 @@ import json
 import pydub
 import shutil
 import tempfile
+import datetime
 
 
 from django.core.files.storage import FileSystemStorage
@@ -265,7 +266,7 @@ def annotate(request, mk, sk):
 	elif request.method == 'POST':
 		try:
 			modeltag = model.tags
-			if modeltag == 'transcription':
+			if modeltag == 'transcription' or modeltag == "allosaurus":
 				segments = json.loads(request.POST.get("segments", "[]"))
 				print(json.dumps(segments))
 				# TODO fixme: do not hardcode
@@ -305,6 +306,21 @@ def annotate(request, mk, sk):
 							"transcription": trans_model_output
 						})
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
+			elif modeltag == "other" and model.name == "allosaurus_finetune":
+				print("finetuning...")
+				fs = FileSystemStorage()
+				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
+				for zip_file in request.FILES.getlist('file'):
+					filename = fs.save(zip_file.name, zip_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					print('temp dir', tmp_dir)
+					shutil.unpack_archive(uploaded_file_path, tmp_dir)
+					allosaurus_finetune = backend_models["allosaurus_finetune"]
+					pretrained_model = "eng2102"
+					new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, {"lang": "eng", "epoch": 2})
+				return Response([{"new_model_id": new_model_id, "status": "success"}], status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			traceback.print_exc()
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
