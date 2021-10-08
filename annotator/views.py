@@ -308,6 +308,8 @@ def annotate(request, mk, sk):
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 			elif modeltag == "other" and model.name == "allosaurus_finetune":
 				print("finetuning...")
+				# params = json.loads(request.POST.get("params", '{"lang": "eng", "epoch": 2}'))
+				params = {"lang": "eng", "epoch": 2}
 				fs = FileSystemStorage()
 				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
 				for zip_file in request.FILES.getlist('file'):
@@ -319,7 +321,8 @@ def annotate(request, mk, sk):
 					allosaurus_finetune = backend_models["allosaurus_finetune"]
 					pretrained_model = "eng2102"
 					new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, {"lang": "eng", "epoch": 2})
+					print('fine-tuned model ID', new_model_id)
+					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
 				return Response([{"new_model_id": new_model_id, "status": "success"}], status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			traceback.print_exc()

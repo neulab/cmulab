@@ -12,3 +12,4 @@ allosaurus
 pydub
 django-allauth
 django-crispy-forms
+pympi-ling
