@@ -39,6 +39,7 @@ urlpatterns = [
     path('users/', views.UserList.as_view(), name='user-list'),
     path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
     path('annotator/upload/', views.list, name='list'),
+    path('annotator/get_auth_token/', views.get_auth_token, name='get_auth_token'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -14,6 +14,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 
 from annotator.models import Mlmodel, Corpus, Segment
 from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
@@ -219,6 +220,7 @@ def trainModel(request, pk):
 def subprocess_call():
 	subprocess.run(['sleep', '5'])
 
+
 # @login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT', 'POST'])
 def annotate(request, mk, sk):
@@ -268,7 +270,9 @@ def annotate(request, mk, sk):
 			modeltag = model.tags
 			if modeltag == 'transcription' or modeltag == "allosaurus":
 				segments = json.loads(request.POST.get("segments", "[]"))
+				params = json.loads(request.POST.get("params", '{"lang": "eng"}'))
 				print(json.dumps(segments))
+				print(json.dumps(params))
 				# TODO fixme: do not hardcode
 				# trans_model = MLModels.TranscriptionModel()
 				trans_model = backend_models["allosaurus"]
@@ -299,7 +303,7 @@ def annotate(request, mk, sk):
 						clip.export(annotation['clip'], format = 'wav')
 						print(annotation['clip'].name)
 						# trans_model.get_results(annotation['clip'].name)
-						trans_model_output = trans_model(annotation['clip'].name)
+						trans_model_output = trans_model(annotation['clip'].name, params=params)
 						response_data.append({
 							"start": annotation['start'],
 							"end": annotation['end'],
@@ -308,8 +312,8 @@ def annotate(request, mk, sk):
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 			elif modeltag == "other" and model.name == "allosaurus_finetune":
 				print("finetuning...")
-				# params = json.loads(request.POST.get("params", '{"lang": "eng", "epoch": 2}'))
-				params = {"lang": "eng", "epoch": 2}
+				default_params = '{"lang": "eng", "epoch": 2, "pretrained_model": "eng2102"}'
+				params = json.loads(request.POST.get("params", default_params))
 				fs = FileSystemStorage()
 				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
 				for zip_file in request.FILES.getlist('file'):
@@ -319,14 +323,16 @@ def annotate(request, mk, sk):
 					print('temp dir', tmp_dir)
 					shutil.unpack_archive(uploaded_file_path, tmp_dir)
 					allosaurus_finetune = backend_models["allosaurus_finetune"]
-					pretrained_model = "eng2102"
+					pretrained_model = params.get("pretrained_model", "eng2102")
 					new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
 					print('fine-tuned model ID', new_model_id)
 					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
-				return Response([{"new_model_id": new_model_id, "status": "success"}], status=status.HTTP_202_ACCEPTED)
+				return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
-			traceback.print_exc()
-			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+			# traceback.print_exc()
+			error_msg = ''.join(traceback.format_exc())
+			print(error_msg)
+			return Response(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @login_required(login_url='')
@@ -350,6 +356,11 @@ def list(request):
 
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'form': form})
+
+@login_required(login_url='')
+def get_auth_token(request):
+    token, created = Token.objects.get_or_create(user=request.user)
+    return HttpResponse(token.key)
 
 
 class AnnotationsInSegment(APIView):
