@@ -268,7 +268,9 @@ def annotate(request, mk, sk):
 	elif request.method == 'POST':
 		try:
 			modeltag = model.tags
-			if modeltag == 'transcription' or modeltag == "allosaurus":
+			params = json.loads(request.POST.get("params", '{}'))
+			# if modeltag == 'transcription' or modeltag == "allosaurus":
+			if "pretrained_model" not in params:
 				segments = json.loads(request.POST.get("segments", "[]"))
 				params = json.loads(request.POST.get("params", '{"lang": "eng"}'))
 				print(json.dumps(segments))
@@ -310,7 +312,8 @@ def annotate(request, mk, sk):
 							"transcription": trans_model_output
 						})
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
-			elif modeltag == "other" and model.name == "allosaurus_finetune":
+			# elif modeltag == "other" and model.name == "allosaurus_finetune":
+			elif "pretrained_model" in params:
 				print("finetuning...")
 				default_params = '{"lang": "eng", "epoch": 2, "pretrained_model": "eng2102"}'
 				params = json.loads(request.POST.get("params", default_params))
