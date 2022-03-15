@@ -269,6 +269,23 @@ def annotate(request, mk, sk):
 		try:
 			modeltag = model.tags
 			params = json.loads(request.POST.get("params", '{}'))
+			if params.get("service") == "diarization":
+				params = json.loads(request.POST.get("params", '{}'))
+				threshold = params.get("threshold", 0.45)
+				annotations = json.loads(request.POST.get("segments", "[]"))
+				segments, speakers = [], []
+				for annotation in annotations:
+					speakers.append(annotation["value"].strip())
+					segments.append([float(annotation["start"]), float(annotation["end"])])
+				fs = FileSystemStorage()
+				for audio_file in request.FILES.getlist('file'):
+					filename = fs.save(audio_file.name, audio_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					diarization_model = backend_models["diarization"]
+					response_data = diarization_model(str(uploaded_file_path), segments, speakers)
+				return Response(response_data, status=status.HTTP_202_ACCEPTED)
+
 			# if modeltag == 'transcription' or modeltag == "allosaurus":
 			if "pretrained_model" not in params:
 				segments = json.loads(request.POST.get("segments", "[]"))
