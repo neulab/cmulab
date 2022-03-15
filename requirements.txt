@@ -1,5 +1,4 @@
-python>=3.6
-django=2.1
+django==2.1.5
 djangorestframework
 coreapi
 pyyaml
@@ -7,5 +6,10 @@ django-filter
 markdown
 httpie
 numpy>1.16.0
-scipy=1.2.1
-requests=2.21.0
+scipy==1.2.1
+requests==2.21.0
+allosaurus
+pydub
+django-allauth
+django-crispy-forms
+pympi-ling

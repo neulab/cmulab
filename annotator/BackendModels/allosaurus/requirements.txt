@@ -1,0 +1,6 @@
+scipy
+numpy
+resampy
+panphon
+torch
+editdistance

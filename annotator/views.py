@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 
 from rest_framework import generics
 from rest_framework import status
@@ -14,6 +14,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 
 from annotator.models import Mlmodel, Corpus, Segment
 from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTextAnnotation
@@ -24,6 +25,31 @@ from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSe
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 from annotator.BackendModels import MLModels
+from annotator.models import Document
+from annotator.forms import DocumentForm
+
+# import django_rq
+import subprocess
+import traceback
+import json
+import pydub
+import shutil
+import tempfile
+import datetime
+
+
+from django.core.files.storage import FileSystemStorage
+
+import sys
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
+backend_models = {}
+for plugin in entry_points(group='cmulab.plugins'):
+    backend_models[plugin.name] = plugin.load()
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -190,8 +216,13 @@ def trainModel(request, pk):
 	if request.method == 'POST':
 		return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-@login_required(login_url='/annotator/login/')
-@api_view(['GET', 'PUT'])
+
+def subprocess_call():
+	subprocess.run(['sleep', '5'])
+
+
+# @login_required(login_url='/annotator/login/')
+@api_view(['GET', 'PUT', 'POST'])
 def annotate(request, mk, sk):
 	#mk is the model id
 	#sk is the segment id	
@@ -212,6 +243,8 @@ def annotate(request, mk, sk):
 
 	elif request.method == 'PUT':
 		try:
+			# TODO fixme
+			# django_rq.enqueue(subprocess_call)
 			# First retrieve the model details
 			modeltag = model.tags
 			#audio_file_path = segment.
@@ -232,8 +265,122 @@ def annotate(request, mk, sk):
 		except Exception as e:
 			print(e)
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+	elif request.method == 'POST':
+		try:
+			modeltag = model.tags
+			params = json.loads(request.POST.get("params", '{}'))
+			if params.get("service") == "diarization":
+				params = json.loads(request.POST.get("params", '{}'))
+				threshold = params.get("threshold", 0.45)
+				annotations = json.loads(request.POST.get("segments", "[]"))
+				segments, speakers = [], []
+				for annotation in annotations:
+					speakers.append(annotation["value"].strip())
+					segments.append([float(annotation["start"]), float(annotation["end"])])
+				fs = FileSystemStorage()
+				for audio_file in request.FILES.getlist('file'):
+					filename = fs.save(audio_file.name, audio_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					diarization_model = backend_models["diarization"]
+					response_data = diarization_model(str(uploaded_file_path), segments, speakers)
+				return Response(response_data, status=status.HTTP_202_ACCEPTED)
+
+			# if modeltag == 'transcription' or modeltag == "allosaurus":
+			if "pretrained_model" not in params:
+				segments = json.loads(request.POST.get("segments", "[]"))
+				params = json.loads(request.POST.get("params", '{"lang": "eng"}'))
+				print(json.dumps(segments))
+				print(json.dumps(params))
+				# TODO fixme: do not hardcode
+				# trans_model = MLModels.TranscriptionModel()
+				trans_model = backend_models["allosaurus"]
+				# audio_file = '/home/user/Downloads/delete/DSTA-project/ELAN_6-1/lib/app/extensions/allosaurus-elan/test/allosaurus.wav'
+				# audio_file = request.FILES['file']
+				fs = FileSystemStorage()
+				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
+				for audio_file in request.FILES.getlist('file'):
+					filename = fs.save(audio_file.name, audio_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					if not uploaded_file_path.endswith('.wav'):
+						converted_audio_file = tempfile.NamedTemporaryFile(suffix = '.wav')
+						ffmpeg = shutil.which('ffmpeg')
+						if ffmpeg:
+							subprocess.call([ffmpeg, '-y', '-v', '0', '-i', uploaded_file_path,'-ac', '1', '-ar', '16000', '-sample_fmt', 's16', '-acodec', 'pcm_s16le', converted_audio_file.name])
+						else:
+							return Response("only WAV files are supported!", status=status.HTTP_400_BAD_REQUEST)
+					else:
+						converted_audio_file = open(uploaded_file_path, mode='rb')
+					converted_audio = pydub.AudioSegment.from_file(converted_audio_file, format = 'wav')
+					response_data = []
+					if not segments:
+						segments = [{'start': 0, 'end': len(converted_audio), 'value': ""}]
+					for annotation in segments:
+						annotation['clip'] = tempfile.NamedTemporaryFile(suffix = '.wav', dir = tmp_dir, delete=False)
+						clip = converted_audio[annotation['start']:annotation['end']]
+						clip.export(annotation['clip'], format = 'wav')
+						print(annotation['clip'].name)
+						# trans_model.get_results(annotation['clip'].name)
+						trans_model_output = trans_model(annotation['clip'].name, params=params)
+						response_data.append({
+							"start": annotation['start'],
+							"end": annotation['end'],
+							"transcription": trans_model_output
+						})
+				return Response(response_data, status=status.HTTP_202_ACCEPTED)
+			# elif modeltag == "other" and model.name == "allosaurus_finetune":
+			elif "pretrained_model" in params:
+				print("finetuning...")
+				default_params = '{"lang": "eng", "epoch": 2, "pretrained_model": "eng2102"}'
+				params = json.loads(request.POST.get("params", default_params))
+				fs = FileSystemStorage()
+				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
+				for zip_file in request.FILES.getlist('file'):
+					filename = fs.save(zip_file.name, zip_file)
+					uploaded_file_path = fs.path(filename)
+					print('absolute file path', uploaded_file_path)
+					print('temp dir', tmp_dir)
+					shutil.unpack_archive(uploaded_file_path, tmp_dir)
+					allosaurus_finetune = backend_models["allosaurus_finetune"]
+					pretrained_model = params.get("pretrained_model", "eng2102")
+					new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+					print('fine-tuned model ID', new_model_id)
+					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
+				return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
+		except Exception as e:
+			# traceback.print_exc()
+			error_msg = ''.join(traceback.format_exc())
+			print(error_msg)
+			return Response(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required(login_url='')
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile = request.FILES['docfile'])
+            newdoc.owner = request.user
+            newdoc.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('list'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.filter(owner=request.user)
+
+
+    # Render list page with the documents and the form
+    return render(request, 'list.html', {'documents': documents, 'form': form})
+
+@login_required(login_url='')
+def get_auth_token(request):
+    token, created = Token.objects.get_or_create(user=request.user)
+    return HttpResponse(token.key)
 
 
 class AnnotationsInSegment(APIView):

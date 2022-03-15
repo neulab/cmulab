@@ -3,3 +3,5 @@ db.sqlite3
 speech/migrations/
 *.swp
 cmulab.egg-info/
+*.pyc
+annotator/media/
