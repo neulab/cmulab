@@ -1,7 +1,7 @@
 import sys
 from .khanaga import khanaga
 from .vad import vad
-from .allosaurus import allosaurus_model
+# from .allosaurus import allosaurus_model
 import requests
 
 
@@ -82,15 +82,15 @@ class VADModel(MLModel):
         # self.output = r.text
 
 # class AllosaurusModel(MLModel):
-class TranscriptionModel(MLModel):
-    def __init__(self):
-        # Give a descriptive name to your model
-        self.name = "Allosaurus phoneme recognizer"
-        # This will store the output of the model for a given segment
-        self.output = ''
+# class TranscriptionModel(MLModel):
+    # def __init__(self):
+        # # Give a descriptive name to your model
+        # self.name = "Allosaurus phoneme recognizer"
+        # # This will store the output of the model for a given segment
+        # self.output = ''
 
-    def get_results(self, input_file):
-        self.output = allosaurus_model.recognize(input_file)
+    # def get_results(self, input_file):
+        # self.output = allosaurus_model.recognize(input_file)
 
 if __name__ == "__main__":
     print("Running: AllosaurusModel " + sys.argv[1])

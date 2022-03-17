@@ -24,6 +24,9 @@ def find_version():
   raise RuntimeError("Unable to find version string.")
 
 
+with open("requirements_detailed.txt", "r") as f:
+    requirements = f.read().splitlines()
+
 setup(
   name="cmulab",
   version=find_version(),
@@ -42,14 +45,6 @@ setup(
   "Programming Language :: Python :: 3",
   ],
   packages=find_packages(),
-  install_requires=[
-    "django",
-    "djangorestframework",
-    "coreapi",
-    "pyyaml",
-    "django-filter",
-    "markdown",
-    "httpie"
-  ],
+  install_requires=requirements,
   include_package_data=True,
 )

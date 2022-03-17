@@ -23,7 +23,7 @@ SECRET_KEY = '4%h_3jhjs(08mk53ix2yp4fghd)@y@j#p)$l$^!um0=7mizn5+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -98,6 +98,9 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SITE_ID = 2
+if os.environ.get("DJANGO_SITE_ID", "").strip():
+    SITE_ID = int(os.environ["DJANGO_SITE_ID"].strip())
+
 
 LOGIN_REDIRECT_URL = '/annotator/upload'
 LOGOUT_REDIRECT_URL = '/accounts/login'
