@@ -226,15 +226,19 @@ def subprocess_call():
 def annotate(request, mk, sk):
 	#mk is the model id
 	#sk is the segment id	
+	segment = None
 	try:
 		segment = Segment.objects.get(pk=sk)
 	except Segment.DoesNotExist:
-		raise Http404
+		print("segment ID does not exist: " + sk)
+		# raise Http404
 
+	model = None
 	try:
 		model = Mlmodel.objects.get(pk=mk)
 	except Mlmodel.DoesNotExist:
-		raise Http404
+		print("model ID does not exist: " + mk)
+		# raise Http404
 
 	if request.method == 'GET':
 		annot = Annotation.objects.filter(segment=segment.id)
@@ -246,7 +250,7 @@ def annotate(request, mk, sk):
 			# TODO fixme
 			# django_rq.enqueue(subprocess_call)
 			# First retrieve the model details
-			modeltag = model.tags
+			modeltag = model.tags if model else ""
 			#audio_file_path = segment.
 			# Create a new annotation
 			if modeltag == 'vad':
@@ -267,7 +271,7 @@ def annotate(request, mk, sk):
 			return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 	elif request.method == 'POST':
 		try:
-			modeltag = model.tags
+			# modeltag = model.tags
 			params = json.loads(request.POST.get("params", '{}'))
 			if params.get("service") == "diarization":
 				params = json.loads(request.POST.get("params", '{}'))
