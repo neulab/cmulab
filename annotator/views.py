@@ -230,14 +230,14 @@ def annotate(request, mk, sk):
 	try:
 		segment = Segment.objects.get(pk=sk)
 	except Segment.DoesNotExist:
-		print("segment ID does not exist: " + sk)
+		print("segment ID does not exist: " + str(sk))
 		# raise Http404
 
 	model = None
 	try:
 		model = Mlmodel.objects.get(pk=mk)
 	except Mlmodel.DoesNotExist:
-		print("model ID does not exist: " + mk)
+		print("model ID does not exist: " + str(mk))
 		# raise Http404
 
 	if request.method == 'GET':
