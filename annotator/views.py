@@ -1,3 +1,4 @@
+import os
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render
@@ -32,10 +33,12 @@ from annotator.forms import DocumentForm
 import subprocess
 import traceback
 import json
+import glob
 import pydub
 import shutil
 import tempfile
 import datetime
+from pathlib import Path
 
 
 from django.core.files.storage import FileSystemStorage
@@ -340,18 +343,50 @@ def annotate(request, mk, sk):
 				params = json.loads(request.POST.get("params", default_params))
 				fs = FileSystemStorage()
 				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
-				for zip_file in request.FILES.getlist('file'):
-					filename = fs.save(zip_file.name, zip_file)
-					uploaded_file_path = fs.path(filename)
-					print('absolute file path', uploaded_file_path)
-					print('temp dir', tmp_dir)
-					shutil.unpack_archive(uploaded_file_path, tmp_dir)
-					allosaurus_finetune = backend_models["allosaurus_finetune"]
-					pretrained_model = params.get("pretrained_model", "eng2102")
-					new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-					print('fine-tuned model ID', new_model_id)
-					allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
-				return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
+				if params.get("service") == "batch_finetune":
+					for zip_file in request.FILES.getlist('file'):
+						tmp_dir2 = tempfile.mkdtemp(prefix="allosaurus-elan-")
+						filename = fs.save(zip_file.name, zip_file)
+						uploaded_file_path = fs.path(filename)
+						print('absolute file path', uploaded_file_path)
+						print('temp dir', tmp_dir)
+						print('temp dir 2', tmp_dir2)
+						shutil.unpack_archive(uploaded_file_path, tmp_dir)
+						train_dir_path = Path(tmp_dir2) / "train"
+						validate_dir_path = Path(tmp_dir2) / "validate"
+						train_dir_path.mkdir(parents=True, exist_ok=True)
+						for wav_file in glob.glob(tmp_dir + "/train/*.wav"):
+							full_audio = pydub.AudioSegment.from_file(wav_file, format = 'wav')
+							json_file = os.path.splitext(wav_file)[0] + ".json"
+							with open(json_file, 'r') as fjson:
+								transcriptions = json.load(fjson)
+							for start_end in transcriptions:
+								start, end = map(int, start_end.split('-'))
+								transcription = transcriptions[start_end][0]
+								segment_id = os.path.basename(os.path.splitext(wav_file)[0]) + '_' + start_end
+								clip = full_audio[start:end]
+								clip.export(train_dir_path / (segment_id + ".wav"), format = 'wav')
+								(train_dir_path / (segment_id + ".txt")).write_text(transcription)
+						shutil.copytree(train_dir_path.resolve(), validate_dir_path.resolve())
+						allosaurus_finetune = backend_models["allosaurus_finetune"]
+						pretrained_model = params.get("pretrained_model", "eng2102")
+						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+						print('fine-tuned model ID', new_model_id)
+						allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
+					return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
+				else:
+					for zip_file in request.FILES.getlist('file'):
+						filename = fs.save(zip_file.name, zip_file)
+						uploaded_file_path = fs.path(filename)
+						print('absolute file path', uploaded_file_path)
+						print('temp dir', tmp_dir)
+						shutil.unpack_archive(uploaded_file_path, tmp_dir)
+						allosaurus_finetune = backend_models["allosaurus_finetune"]
+						pretrained_model = params.get("pretrained_model", "eng2102")
+						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+						print('fine-tuned model ID', new_model_id)
+						allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
+					return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			# traceback.print_exc()
 			error_msg = ''.join(traceback.format_exc())
