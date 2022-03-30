@@ -13,9 +13,10 @@ from annotator.models import Annotation, TextAnnotation, AudioAnnotation, SpanTe
 #        fields = ('id', 'audio', 'title', 'vad', 'phone_boundaries', 'spectrum_path')
 
 class MlmodelSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         model = Mlmodel
-        fields = ('id', 'name', 'created', 'modelTrainingSpec', 'status', 'tags')
+        fields = ('id', 'name', 'owner', 'created', 'modelTrainingSpec', 'status', 'tags')
 
 
 class CorpusSerializer(serializers.HyperlinkedModelSerializer):

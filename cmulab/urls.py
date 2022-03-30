@@ -22,4 +22,8 @@ urlpatterns += [
     path('annotator/', include('rest_framework.urls')),
 ]
 
+urlpatterns += [
+    path('django-rq/', include('django_rq.urls'))
+]
+
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

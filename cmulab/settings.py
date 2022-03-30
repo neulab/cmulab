@@ -45,7 +45,18 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'crispy_forms',
+    'django_rq',
 ]
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 8379,
+        'DB': 0,
+        'PASSWORD': 'asdf234KHk12ala01#1sasHH43',
+        'DEFAULT_TIMEOUT': 360,
+    }
+}
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 

@@ -29,7 +29,8 @@ from annotator.BackendModels import MLModels
 from annotator.models import Document
 from annotator.forms import DocumentForm
 
-# import django_rq
+import django_rq
+from allosaurus.model import get_all_models
 import subprocess
 import traceback
 import json
@@ -38,6 +39,7 @@ import pydub
 import shutil
 import tempfile
 import datetime
+import time
 from pathlib import Path
 
 
@@ -223,6 +225,40 @@ def trainModel(request, pk):
 def subprocess_call():
 	subprocess.run(['sleep', '5'])
 
+def dummy_python_job(msg):
+	print("Starting dummy python job")
+	time.sleep(1)
+	print("PROGRESS: 10%")
+	time.sleep(1)
+	print("PROGRESS: 20%")
+	time.sleep(1)
+	print("PROGRESS: 30%")
+	time.sleep(1)
+	print("PROGRESS: 40%")
+	time.sleep(1)
+	print("PROGRESS: 50%")
+	sys.stderr.write("WARNING: test stderr message")
+	time.sleep(1)
+	return("SUCCESS: " + msg)
+
+
+
+def batch_finetune_allosaurus(data_dir, pretrained_model, new_model_name, params, owner):
+	print("Starting allosaurus fine-tuning job...")
+	print("User: " + str(owner))
+	print("User python type: " + str(type(owner)))
+	allosaurus_finetune = backend_models["allosaurus_finetune"]
+	allosaurus_finetune(data_dir, pretrained_model, new_model_name, params)
+	allosaurus_models = [model.name for model in get_all_models()]
+	if new_model_name in allosaurus_models:
+		model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status='ready', tags=Mlmodel.TRANSCRIPTION)
+		if not owner.is_anonymous:
+			model1.owner = owner
+		model1.save()
+		return "Training successful! New model name: " + new_model_name
+	else:
+		return "Training failed for model " + new_model_name
+
 
 # @login_required(login_url='/annotator/login/')
 @api_view(['GET', 'PUT', 'POST'])
@@ -244,14 +280,14 @@ def annotate(request, mk, sk):
 		# raise Http404
 
 	if request.method == 'GET':
-		annot = Annotation.objects.filter(segment=segment.id)
-		serializer = AnnotationSerializer(annot)
-		return Response(serializer.data)
+		django_rq.enqueue(dummy_python_job, "test message!")
+		# annot = Annotation.objects.filter(segment=segment.id)
+		# serializer = AnnotationSerializer(annot)
+		# return Response(serializer.data)
+		return Response(status=status.HTTP_202_ACCEPTED)
 
 	elif request.method == 'PUT':
 		try:
-			# TODO fixme
-			# django_rq.enqueue(subprocess_call)
 			# First retrieve the model details
 			modeltag = model.tags if model else ""
 			#audio_file_path = segment.
@@ -371,9 +407,19 @@ def annotate(request, mk, sk):
 						allosaurus_finetune = backend_models["allosaurus_finetune"]
 						pretrained_model = params.get("pretrained_model", "eng2102")
 						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+						# allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
+						job_id = "allosaurus_finetune_"+new_model_id
+						print("User: " + str(request.user))
+						print("User python type: " + str(type(request.user)))
+						job = django_rq.enqueue(batch_finetune_allosaurus, tmp_dir2, pretrained_model, new_model_id, params, request.user,
+									job_id=job_id)
 						print('fine-tuned model ID', new_model_id)
-						allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
-					return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
+						print('RQ job ID', job_id)
+					return Response([{"new_model_id": new_model_id,
+						"job_id": job_id,
+						"status_url": "http://localhost:8088/django-rq/queues/0/" + job_id,
+						"lang": params["lang"],
+						"status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
 				else:
 					for zip_file in request.FILES.getlist('file'):
 						filename = fs.save(zip_file.name, zip_file)
