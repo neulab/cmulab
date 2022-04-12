@@ -42,6 +42,9 @@ import datetime
 import time
 from pathlib import Path
 
+import io
+from contextlib import redirect_stdout, redirect_stderr
+
 
 from django.core.files.storage import FileSystemStorage
 
@@ -243,21 +246,43 @@ def dummy_python_job(msg):
 
 
 
-def batch_finetune_allosaurus(data_dir, pretrained_model, new_model_name, params, owner):
-	print("Starting allosaurus fine-tuning job...")
+def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_name, params, owner):
+	print("Starting allosaurus fine-tuning job " + new_model_name)
 	print("User: " + str(owner))
 	print("User python type: " + str(type(owner)))
-	allosaurus_finetune = backend_models["allosaurus_finetune"]
-	allosaurus_finetune(data_dir, pretrained_model, new_model_name, params)
-	allosaurus_models = [model.name for model in get_all_models()]
-	if new_model_name in allosaurus_models:
-		model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status='ready', tags=Mlmodel.TRANSCRIPTION)
+	tb = ""
+	str_stdout = ""
+	try:
+		model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
 		if not owner.is_anonymous:
 			model1.owner = owner
 		model1.save()
-		return "Training successful! New model name: " + new_model_name
+		fs = FileSystemStorage()
+		with fs.open(log_file, 'w') as f_stdout:
+			with redirect_stderr(f_stdout):
+				with redirect_stdout(f_stdout):
+					print("New model ID: " + new_model_name)
+					print(json.dumps(params, indent=4))
+					print("Fine-tuning Allosaurus...")
+					allosaurus_finetune = backend_models["allosaurus_finetune"]
+					allosaurus_finetune(data_dir, pretrained_model, new_model_name, params)
+		with fs.open(log_file, 'r') as f_stdout:
+			str_stdout = f_stdout.read()
+	except:
+		tb = traceback.format_exc()
+	allosaurus_models = [model.name for model in get_all_models()]
+	if not tb and new_model_name in allosaurus_models:
+		model1.status=Mlmodel.READY
+		model1.save()
+		msg = str_stdout + "\nTraining successful! New model name: " + new_model_name
+		print(msg)
+		return msg
 	else:
-		return "Training failed for model " + new_model_name
+		model1.status=Mlmodel.UNAVAILABLE
+		model1.save()
+		msg = str_stdout + tb + "\nTraining failed for model " + new_model_name
+		print(msg)
+		return msg
 
 
 # @login_required(login_url='/annotator/login/')
@@ -416,13 +441,14 @@ def annotate(request, mk, sk):
 							print("Username: " + request.user.get_username())
 						print("User: " + str(request.user))
 						print("User python type: " + str(type(request.user)))
-						job = django_rq.enqueue(batch_finetune_allosaurus, tmp_dir2, pretrained_model, new_model_id, params, request.user,
-									job_id=job_id)
+						log_file = "allosaurus_finetune_" + new_model_id + "_log.txt"
+						job = django_rq.enqueue(batch_finetune_allosaurus, tmp_dir2, log_file, pretrained_model, new_model_id, params, request.user,
+									job_id=job_id, result_ttl=-1)
 						print('fine-tuned model ID', new_model_id)
 						print('RQ job ID', job_id)
 					return Response([{"new_model_id": new_model_id,
 						"job_id": job_id,
-						"status_url": "http://localhost:8088/django-rq/queues/0/" + job_id,
+						"status_url": "/annotator/media/" + log_file,
 						"lang": params["lang"],
 						"status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
 				else:
@@ -462,10 +488,11 @@ def list(request):
 
     # Load documents for the list page
     documents = Document.objects.filter(owner=request.user)
+    ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
 
 
     # Render list page with the documents and the form
-    return render(request, 'list.html', {'documents': documents, 'form': form})
+    return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
 
 @login_required(login_url='')
 def get_auth_token(request):
