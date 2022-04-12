@@ -409,6 +409,11 @@ def annotate(request, mk, sk):
 						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
 						# allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
 						job_id = "allosaurus_finetune_"+new_model_id
+						auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
+						if auth_token:
+							print("Auth token: " + auth_token)
+							request.user = Token.objects.get(key=auth_token).user
+							print("Username: " + request.user.get_username())
 						print("User: " + str(request.user))
 						print("User python type: " + str(type(request.user)))
 						job = django_rq.enqueue(batch_finetune_allosaurus, tmp_dir2, pretrained_model, new_model_id, params, request.user,
