@@ -3,44 +3,106 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-        <title>Upload Files</title>
+        <title>CMU Linguistic Annotation Backend</title>
     </head>
 
     <body>
         {% load crispy_forms_tags %}
-        <div style="width: 500px; margin: auto;">
+        <div style="width: 637px; margin: auto;">
         <p/>
-        <p>You are logged in as {{ user.username }}. <a href="/annotator/logout">Logout</a></p>
-        <iframe style="width:100%;" src="/annotator/static/cmu-irb-online-consent.html"></iframe>
+        <h1>CMU Linguistic Annotation Backend</h1>
+        <p style="text-align: right">You are logged in as <b>{{ user.username }}</b>. <a href="/annotator/logout">Logout</a></p>
 
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="upload-tab"  href="#upload" role="tab" aria-controls="upload" aria-selected="true">Upload</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="models-tab"  href="#models" role="tab" aria-controls="models" aria-selected="false">Models</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="contact-tab"  href="#contact" role="tab" aria-controls="contact" aria-selected="false">About</a>
+            </li>
+        </ul>
+				<div class="tab-content" id="myTabContent">
 
-        <!-- List of uploaded documents -->
-        {% if documents %}
-            <ul>
-                {% for document in documents %}
-                    <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No documents.</p>
-        {% endif %}
+            <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" style="width:100%;" src="/annotator/static/cmu-irb-online-consent.html"></iframe>
+                </div>
+                <br>
+                <!-- List of uploaded documents -->
+                {% if documents %}
+                    <ul>
+                        {% for document in documents %}
+                            <li><a href="{{ document.docfile.url }}">{{ document.docfile.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No documents.</p>
+                {% endif %}
 
-        <!-- Upload form. Note enctype attribute! -->
-        <form action="{% url 'list' %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <p>{{ form.non_field_errors }}</p>
+                <!-- Upload form. Note enctype attribute! -->
+                <form action="{% url 'list' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <p>{{ form.non_field_errors }}</p>
 
-            <!--<p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>-->
+                    <!--<p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>-->
 
-            <p>
-                <!--{{ form.docfile.errors }}-->
-                <!--{{ form.docfile }}-->
-                {{ form|crispy }}
-            </p>
+                    <p>
+                        <!--{{ form.docfile.errors }}-->
+                        <!--{{ form.docfile }}-->
+                        {{ form|crispy }}
+                    </p>
 
-            <p><input type="submit" value="Upload"/></p>
-        </form>
+                    <p><input class="btn btn-primary" type="submit" value="Upload"/></p>
+                </form>
+            </div>
+
+						<div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="models-tab">
+                <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
+                {% if ml_models %}
+                <table class="table">
+                    <tr>
+                        <td>Model ID</td>
+                        <td>Date created</td>
+                        <td>Status</td>
+                    </tr>
+                    {% for ml_model in ml_models %}
+                    <tr>
+                        <td>{{ ml_model.name }}</td>
+                        <td>{{ ml_model.created }}</td>
+                        <td><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt">{{ ml_model.status }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                    <p>No ml_models.</p>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                <br>
+                Check us out on <a href="https://github.com/neulab/cmulab">Github</a>
+            </div>
+
         </div>
+
+        <br>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script>
+            $(document).ready(function(){
+                if(window.location.hash != "") {
+                    $('a[href="' + window.location.hash + '"]').click()
+                }
+            });
+            $('.nav-tabs a').click(function (e) {
+                        $(this).tab('show');
+            });
+        </script>
     </body>
 
 </html>
