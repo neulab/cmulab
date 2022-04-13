@@ -67,12 +67,15 @@
                         <td>Model ID</td>
                         <td>Date created</td>
                         <td>Status</td>
+                        <td>Delete</td>
                     </tr>
                     {% for ml_model in ml_models %}
                     <tr>
                         <td>{{ ml_model.name }}</td>
                         <td>{{ ml_model.created }}</td>
                         <td><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt">{{ ml_model.status }}</a></td>
+                        <td><button type="button" class="btn btn-danger">Delete</button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </table>

@@ -616,7 +616,11 @@ class ModelList(generics.ListCreateAPIView):
 	filter_backends = (DjangoFilterBackend,)
 	filterset_fields = ('status', 'tags',)
 
-class ModelDetail(generics.RetrieveUpdateAPIView):
+# class ModelDetail(generics.RetrieveUpdateAPIView):
+	# queryset = Mlmodel.objects.all()
+	# serializer_class = MlmodelSerializer
+
+class ModelDetail(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Mlmodel.objects.all()
 	serializer_class = MlmodelSerializer
 
