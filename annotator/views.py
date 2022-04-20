@@ -436,9 +436,14 @@ def annotate(request, mk, sk):
 						job_id = "allosaurus_finetune_"+new_model_id
 						auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
 						if auth_token:
-							print("Auth token: " + auth_token)
-							request.user = Token.objects.get(key=auth_token).user
-							print("Username: " + request.user.get_username())
+							try:
+								print("Auth token: " + auth_token)
+								request.user = Token.objects.get(key=auth_token).user
+								print("Username: " + request.user.get_username())
+							except:
+								return Response(status=status.HTTP_401_UNAUTHORIZED)
+						else:
+							return Response(status=status.HTTP_401_UNAUTHORIZED)
 						print("User: " + str(request.user))
 						print("User python type: " + str(type(request.user)))
 						log_file = "allosaurus_finetune_" + new_model_id + "_log.txt"
@@ -498,6 +503,18 @@ def list(request):
 def get_auth_token(request):
     token, created = Token.objects.get_or_create(user=request.user)
     return HttpResponse(token.key)
+
+
+def check_auth_token(request):
+    auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
+    if auth_token:
+        try:
+            request.user = Token.objects.get(key=auth_token).user
+        except:
+            return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+        return HttpResponse("Authorized")
+    else:
+        return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
 
 
 class AnnotationsInSegment(APIView):
