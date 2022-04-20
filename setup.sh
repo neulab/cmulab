@@ -16,5 +16,7 @@ python manage.py migrate
 # nohup python -u manage.py runserver 0.0.0.0:8088 --verbosity 2 &
 # python manage.py createsuperuser
 # python populate.py 
+# nohup redis-server redis.conf &> log.redis-server &
+# nohup python -u manage.py rqworker default &> log.rqworker_default &
 # Create OAuth app at https://console.cloud.google.com/apis/credentials/oauthclient
 # Login to http://localhost:8088/admin/socialaccount/socialapp and add social app
