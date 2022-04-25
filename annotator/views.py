@@ -355,7 +355,8 @@ def annotate(request, mk, sk):
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 
 			# if modeltag == 'transcription' or modeltag == "allosaurus":
-			if "pretrained_model" not in params:
+			# if "pretrained_model" not in params:
+			if params.get("service") == "phone_transcription":
 				segments = json.loads(request.POST.get("segments", "[]"))
 				params = json.loads(request.POST.get("params", '{"lang": "eng"}'))
 				print(json.dumps(segments))
@@ -457,6 +458,7 @@ def annotate(request, mk, sk):
 						"lang": params["lang"],
 						"status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
 				else:
+					# old version of fine-tuning service, no longer used TODO: DELETE THIS
 					for zip_file in request.FILES.getlist('file'):
 						filename = fs.save(zip_file.name, zip_file)
 						uploaded_file_path = fs.path(filename)
