@@ -455,6 +455,7 @@ def annotate(request, mk, sk):
 					return Response([{"new_model_id": new_model_id,
 						"job_id": job_id,
 						"status_url": "/annotator/media/" + log_file,
+						"models_url": request.build_absolute_uri("/annotator/upload/#models"),
 						"lang": params["lang"],
 						"status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
 				else:
