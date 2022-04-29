@@ -38,9 +38,11 @@ urlpatterns = [
     path('annotator/spantextannotation/<int:pk>/', views.SpanTextAnnotationDetail.as_view(), name='spantextannotation-detail'),
     path('users/', views.UserList.as_view(), name='user-list'),
     path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
-    path('annotator/upload/', views.list, name='list'),
+    path('annotator/upload/', views.list_home, name='list_home'),
     path('annotator/get_auth_token/', views.get_auth_token, name='get_auth_token'),
     path('annotator/check_auth_token/', views.check_auth_token, name='check_auth_token'),
+    path('annotator/get_allosaurus_models/', views.get_allosaurus_models, name='get_allosaurus_models'),
+    path('annotator/get_allosaurus_phones/<str:model_name>/<str:lang_id>/', views.get_allosaurus_phones, name='get_allosaurus_phones'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

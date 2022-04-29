@@ -31,6 +31,8 @@ from annotator.forms import DocumentForm
 
 import django_rq
 from allosaurus.model import get_all_models
+from allosaurus.model import get_model_path
+from allosaurus.lm.inventory import Inventory
 import subprocess
 import traceback
 import json
@@ -480,7 +482,7 @@ def annotate(request, mk, sk):
 
 
 @login_required(login_url='')
-def list(request):
+def list_home(request):
     # Handle file upload
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
@@ -490,7 +492,7 @@ def list(request):
             newdoc.save()
 
             # Redirect to the document list after POST
-            return HttpResponseRedirect(reverse('list'))
+            return HttpResponseRedirect(reverse('list_home'))
     else:
         form = DocumentForm() # A empty, unbound form
 
@@ -506,6 +508,30 @@ def list(request):
 def get_auth_token(request):
     token, created = Token.objects.get_or_create(user=request.user)
     return HttpResponse(token.key)
+
+
+def get_allosaurus_models(request):
+    result = []
+    # models = get_all_models()
+    # TODO: fixme
+    for model in ["eng2102", "uni2005"]:
+        model_path = get_model_path(model)
+        inventory = Inventory(model_path)
+        result.append((model, sorted(zip(inventory.lang_ids, inventory.lang_names))))
+        # for lang_id in inventory.lang_ids:
+            # mask = inventory.get_mask(lang_id)
+            # unit = mask.target_unit
+            # phones = ' '.join(list(unit.id_to_unit.values())
+    return render(request, 'allosaurus_models.html', {'result': result})
+
+
+def get_allosaurus_phones(request, model_name, lang_id):
+    model_path = get_model_path(model_name)
+    inventory = Inventory(model_path)
+    mask = inventory.get_mask(lang_id)
+    unit = mask.target_unit
+    phones = '<br>'.join(list(unit.id_to_unit.values()))
+    return HttpResponse(phones)
 
 
 def check_auth_token(request):
