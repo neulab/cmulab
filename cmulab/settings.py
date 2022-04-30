@@ -96,6 +96,9 @@ AUTHENTICATION_BACKENDS = [
         'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# allauth
+ACCOUNT_EMAIL_VERIFICATION = "none"
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
