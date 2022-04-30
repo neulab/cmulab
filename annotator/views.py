@@ -1,7 +1,7 @@
 import os
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -479,6 +479,11 @@ def annotate(request, mk, sk):
 			error_msg = ''.join(traceback.format_exc())
 			print(error_msg)
 			return Response(error_msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@login_required(login_url='')
+def list_models(request):
+    return redirect(reverse('home') + '#models')
 
 
 @login_required(login_url='')
