@@ -253,25 +253,25 @@ def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_na
 	print("User: " + str(owner))
 	print("User python type: " + str(type(owner)))
 	tb = ""
-	str_stdout = ""
-	try:
-		model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
-		if not owner.is_anonymous:
-			model1.owner = owner
-		model1.save()
-		fs = FileSystemStorage()
-		with fs.open(log_file, 'w') as f_stdout:
-			with redirect_stderr(f_stdout):
-				with redirect_stdout(f_stdout):
+	fs = FileSystemStorage()
+	with fs.open(log_file, 'w') as f_stdout:
+		with redirect_stderr(f_stdout):
+			with redirect_stdout(f_stdout):
+				try:
+					model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
+					if not owner.is_anonymous:
+						model1.owner = owner
+					model1.save()
 					print("New model ID: " + new_model_name)
 					print(json.dumps(params, indent=4))
 					print("Fine-tuning Allosaurus...")
 					allosaurus_finetune = backend_models["allosaurus_finetune"]
 					allosaurus_finetune(data_dir, pretrained_model, new_model_name, params)
-		with fs.open(log_file, 'r') as f_stdout:
-			str_stdout = f_stdout.read()
-	except:
-		tb = traceback.format_exc()
+				except:
+					tb = traceback.format_exc()
+					print(tb)
+	with fs.open(log_file, 'r') as f_stdout:
+		str_stdout = f_stdout.read()
 	allosaurus_models = [model.name for model in get_all_models()]
 	if not tb and new_model_name in allosaurus_models:
 		model1.status=Mlmodel.READY
@@ -282,7 +282,7 @@ def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_na
 	else:
 		model1.status=Mlmodel.UNAVAILABLE
 		model1.save()
-		msg = str_stdout + tb + "\nTraining failed for model " + new_model_name
+		msg = str_stdout + "\nTraining failed for model " + new_model_name
 		print(msg)
 		return msg
 

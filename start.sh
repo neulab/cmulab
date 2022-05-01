@@ -4,6 +4,10 @@
 source activate cmulab
 set -x
 
+pkill -f rqworker
+pkill -f runserver
+pkill -f redis-server
+
 python manage.py makemigrations annotator
 python manage.py migrate
 export PYTHONUNBUFFERED=1
