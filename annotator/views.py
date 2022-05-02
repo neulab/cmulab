@@ -403,7 +403,7 @@ def annotate(request, mk, sk):
 			# elif modeltag == "other" and model.name == "allosaurus_finetune":
 			elif "pretrained_model" in params:
 				print("finetuning...")
-				default_params = '{"lang": "eng", "epoch": 2, "pretrained_model": "eng2102"}'
+				default_params = '{"lang": "eng", "epoch": 2, "pretrained_model": "uni2005"}'
 				params = json.loads(request.POST.get("params", default_params))
 				fs = FileSystemStorage()
 				tmp_dir = tempfile.mkdtemp(prefix="allosaurus-elan-")
@@ -433,7 +433,7 @@ def annotate(request, mk, sk):
 								(train_dir_path / (segment_id + ".txt")).write_text(transcription)
 						shutil.copytree(train_dir_path.resolve(), validate_dir_path.resolve())
 						allosaurus_finetune = backend_models["allosaurus_finetune"]
-						pretrained_model = params.get("pretrained_model", "eng2102")
+						pretrained_model = params.get("pretrained_model", "uni2005")
 						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
 						# allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
 						job_id = "allosaurus_finetune_"+new_model_id
