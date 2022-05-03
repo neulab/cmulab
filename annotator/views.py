@@ -273,6 +273,9 @@ def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_na
 	with fs.open(log_file, 'r') as f_stdout:
 		str_stdout = f_stdout.read()
 	allosaurus_models = [model.name for model in get_all_models()]
+	# TODO: ask user if we should delete this or keep
+	if os.path.exists(data_dir):
+		shutil.rmtree(data_dir)
 	if not tb and new_model_name in allosaurus_models:
 		model1.status=Mlmodel.READY
 		model1.save()
@@ -354,6 +357,7 @@ def annotate(request, mk, sk):
 					print('absolute file path', uploaded_file_path)
 					diarization_model = backend_models["diarization"]
 					response_data = diarization_model(str(uploaded_file_path), segments, speakers)
+					fs.delete(filename)
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 
 			# if modeltag == 'transcription' or modeltag == "allosaurus":
@@ -399,6 +403,11 @@ def annotate(request, mk, sk):
 							"end": annotation['end'],
 							"transcription": trans_model_output
 						})
+					fs.delete(filename)
+					if os.path.exists(converted_audio_file.name):
+						os.remove(converted_audio_file.name)
+				if os.path.exists(tmp_dir):
+					shutil.rmtree(tmp_dir)
 				return Response(response_data, status=status.HTTP_202_ACCEPTED)
 			# elif modeltag == "other" and model.name == "allosaurus_finetune":
 			elif "pretrained_model" in params:
@@ -410,6 +419,7 @@ def annotate(request, mk, sk):
 				if params.get("service") == "batch_finetune":
 					for zip_file in request.FILES.getlist('file'):
 						tmp_dir2 = tempfile.mkdtemp(prefix="allosaurus-elan-")
+						# TODO: remove files afterwards
 						filename = fs.save(zip_file.name, zip_file)
 						uploaded_file_path = fs.path(filename)
 						print('absolute file path', uploaded_file_path)
@@ -454,6 +464,9 @@ def annotate(request, mk, sk):
 									job_id=job_id, result_ttl=-1)
 						print('fine-tuned model ID', new_model_id)
 						print('RQ job ID', job_id)
+						fs.delete(filename)
+					if os.path.exists(tmp_dir):
+						shutil.rmtree(tmp_dir)
 					return Response([{"new_model_id": new_model_id,
 						"job_id": job_id,
 						"status_url": "/annotator/media/" + log_file,
@@ -473,6 +486,9 @@ def annotate(request, mk, sk):
 						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
 						print('fine-tuned model ID', new_model_id)
 						allosaurus_finetune(tmp_dir, pretrained_model, new_model_id, params)
+						fs.delete(filename)
+					if os.path.exists(tmp_dir):
+						shutil.rmtree(tmp_dir)
 					return Response([{"new_model_id": new_model_id, "lang": params["lang"], "status": "success"}], status=status.HTTP_202_ACCEPTED)
 		except Exception as e:
 			# traceback.print_exc()

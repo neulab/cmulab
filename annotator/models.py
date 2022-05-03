@@ -7,6 +7,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+import allosaurus
+import shutil
 
 class Document(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, default=1, null = True, on_delete=models.CASCADE)
@@ -40,6 +43,12 @@ class Mlmodel(models.Model):
 
 	def __str__(self):
 		return self.name
+
+	def delete(self, *args, **kwargs):
+		fs = FileSystemStorage()
+		fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
+		shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+		super().delete(*args, **kwargs)
 
 
 class Corpus(models.Model):
