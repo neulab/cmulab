@@ -36,6 +36,7 @@ from allosaurus.lm.inventory import Inventory
 import subprocess
 import traceback
 import json
+import string, secrets
 import glob
 import pydub
 import shutil
@@ -444,7 +445,9 @@ def annotate(request, mk, sk):
 						shutil.copytree(train_dir_path.resolve(), validate_dir_path.resolve())
 						allosaurus_finetune = backend_models["allosaurus_finetune"]
 						pretrained_model = params.get("pretrained_model", "uni2005")
-						new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+						# new_model_id = pretrained_model + "_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+						suffix = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(8))
+						new_model_id = '_'.join([pretrained_model, params["lang"], suffix])
 						# allosaurus_finetune(tmp_dir2, pretrained_model, new_model_id, params)
 						job_id = "allosaurus_finetune_"+new_model_id
 						auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()

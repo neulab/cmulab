@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import allosaurus
+import traceback
 import shutil
 
 class Document(models.Model):
@@ -45,9 +46,13 @@ class Mlmodel(models.Model):
 		return self.name
 
 	def delete(self, *args, **kwargs):
-		fs = FileSystemStorage()
-		fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
-		shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+		try:
+			fs = FileSystemStorage()
+			fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
+			shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+		except:
+			tb = traceback.format_exc()
+			print(tb)
 		super().delete(*args, **kwargs)
 
 
