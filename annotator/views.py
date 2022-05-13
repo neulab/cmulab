@@ -64,6 +64,8 @@ backend_models = {}
 for plugin in entry_points(group='cmulab.plugins'):
     backend_models[plugin.name] = plugin.load()
 
+ocr_client = vision.ImageAnnotatorClient()
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -533,17 +535,17 @@ def list_home(request):
 
 @api_view(['POST'])
 def ocr_post_correction(request):
+    global ocr_client
     if request.method == 'POST':
         fs = FileSystemStorage()
         text = {}
         for image_file in request.FILES.getlist('file'):
                 filename = fs.save(image_file.name, image_file)
                 uploaded_file_path = fs.path(filename)
-                client = vision.ImageAnnotatorClient()
                 with io.open(uploaded_file_path, "rb") as image_file:
                         content = image_file.read()
                         image = vision.Image(content=content)
-                        response = client.document_text_detection(image=image)
+                        response = ocr_client.document_text_detection(image=image)
                         text[image_file.name] = response.full_text_annotation.text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
