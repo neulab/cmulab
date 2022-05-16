@@ -53,6 +53,7 @@ from django.core.files.storage import FileSystemStorage
 
 from google.cloud import vision
 from google.protobuf.json_format import MessageToJson
+from pdf2image import convert_from_path
 
 import sys
 if sys.version_info < (3, 10):
@@ -539,14 +540,22 @@ def ocr_post_correction(request):
     if request.method == 'POST':
         fs = FileSystemStorage()
         text = {}
-        for image_file in request.FILES.getlist('file'):
-                filename = fs.save(image_file.name, image_file)
-                uploaded_file_path = fs.path(filename)
-                with io.open(uploaded_file_path, "rb") as image_file:
-                        content = image_file.read()
-                        image = vision.Image(content=content)
-                        response = ocr_client.document_text_detection(image=image)
-                        text[image_file.name] = response.full_text_annotation.text
+        images = []
+        for uploaded_file in request.FILES.getlist('file'):
+            filename = fs.save(uploaded_file.name, uploaded_file)
+            filepath = fs.path(filename)
+            if uploaded_file.name.endswith('.pdf'):
+                tmp_dir = tempfile.mkdtemp(prefix="pdf2image_")
+                images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_folder=tmp_dir)
+            else:
+                images.append(filepath)
+        for filepath in images:
+            print(filepath)
+            with io.open(filepath, "rb") as image_file:
+                content = image_file.read()
+                image = vision.Image(content=content)
+                response = ocr_client.document_text_detection(image=image)
+                text[os.path.basename(image_file.name)] = response.full_text_annotation.text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
 @login_required(login_url='')
