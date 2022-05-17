@@ -66,6 +66,7 @@ for plugin in entry_points(group='cmulab.plugins'):
     backend_models[plugin.name] = plugin.load()
 
 ocr_client = vision.ImageAnnotatorClient()
+ocr_api_usage = {}
 
 
 @api_view(['GET'])
@@ -536,7 +537,16 @@ def list_home(request):
 
 @api_view(['POST'])
 def ocr_post_correction(request):
-    global ocr_client
+    global ocr_client, ocr_api_usage
+    auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
+    if auth_token:
+        try:
+            request.user = Token.objects.get(key=auth_token).user
+            username = request.user.get_username()
+        except:
+            return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
         fs = FileSystemStorage()
         text = {}
@@ -551,6 +561,12 @@ def ocr_post_correction(request):
                 images.append(filepath)
         for filepath in images:
             print(filepath)
+            print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+            print(ocr_api_usage)
+            # TODO: write a better rate-limiting system
+            if ocr_api_usage.get(username, 0) > 100:
+                continue
+            ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
             with io.open(filepath, "rb") as image_file:
                 content = image_file.read()
                 image = vision.Image(content=content)
