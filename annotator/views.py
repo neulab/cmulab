@@ -375,6 +375,14 @@ def annotate(request, mk, sk):
                                 params = json.loads(request.POST.get("params", '{"lang": "eng"}'))
                                 print(json.dumps(segments))
                                 print(json.dumps(params))
+                                if len(params["lang"].strip().split()) > 1:
+                                    # this is actually a list of phones, write them to a file and pass to allosaurus
+                                    # TODO: delete this
+                                    phoneslist = tempfile.NamedTemporaryFile(suffix = '.txt', delete=False)
+                                    phoneslist.close()
+                                    Path(phoneslist.name).write_text('\n'.join(params["lang"].split()))
+                                    params["lang"] = phoneslist.name
+                                    print(params["lang"])
                                 # TODO fixme: do not hardcode
                                 # trans_model = MLModels.TranscriptionModel()
                                 trans_model = backend_models["allosaurus"]
@@ -587,7 +595,7 @@ def get_allosaurus_models(request):
     for model in ["eng2102", "uni2005"]:
         model_path = get_model_path(model)
         inventory = Inventory(model_path)
-        result.append((model, sorted(zip(inventory.lang_ids, inventory.lang_names))))
+        result.append((model, [("ipa", f"Entire {model} phone inventory")] + sorted(zip(inventory.lang_ids, inventory.lang_names))))
         # for lang_id in inventory.lang_ids:
             # mask = inventory.get_mask(lang_id)
             # unit = mask.target_unit
