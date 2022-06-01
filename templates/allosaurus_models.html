@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <title>Pre-trained Allosaurus models</title>
+    </head>
+
+    <body>
+        <div style="width: 637px; margin: auto;">
+        {% if result %}
+          <table class="table">
+              <tr>
+                  <th>Model_ID</th>
+                  <th>Lang_ID</th>
+                  <th>Language Name</th>
+                  <th>Phones</th>
+              </tr>
+              {% for model, langs in result %}
+                {% for lang_id, lang_name in langs %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ lang_id }}</td>
+                    <td>{{ lang_name }}</td>
+                    <td><a href="/annotator/get_allosaurus_phones/{{ model }}/{{ lang_id }}">Phones</a></td>
+                </tr>
+                {% endfor %}
+              {% endfor %}
+          </table>
+        {% else %}
+            <p>Something went wrong!</p>
+        {% endif %}
+        </div>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    </body>
+
+</html>
