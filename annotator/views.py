@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
 
 from rest_framework import generics
 from rest_framework import status
@@ -573,7 +573,7 @@ def ocr_post_correction(request):
             print(ocr_api_usage)
             # TODO: write a better rate-limiting system
             if ocr_api_usage.get(username, 0) > 100:
-                continue
+                return HttpResponseForbidden()
             ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
             with io.open(filepath, "rb") as image_file:
                 content = image_file.read()
