@@ -543,6 +543,9 @@ def list_home(request):
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
 
+def ocr_frontend(request):
+    return render(request, "ocr_frontend.html", {})
+
 @api_view(['POST'])
 def ocr_post_correction(request):
     global ocr_client, ocr_api_usage

@@ -75,7 +75,9 @@ ROOT_URLCONF = 'cmulab.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'annotator', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+                 os.path.join(BASE_DIR, 'annotator', 'templates'),
+                 os.path.join(BASE_DIR, 'ocr_frontend', 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -169,8 +171,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/annotator/static/'
+# STATIC_URL = '/annotator/static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'annotator/static')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'ocr_frontend', 'build', 'static')]
+
 
 # This in order to add pagination
 REST_FRAMEWORK = {

@@ -46,6 +46,7 @@ urlpatterns = [
     path('annotator/get_allosaurus_models/', views.get_allosaurus_models, name='get_allosaurus_models'),
     path('annotator/get_allosaurus_phones/<str:model_name>/<str:lang_id>/', views.get_allosaurus_phones, name='get_allosaurus_phones'),
     path('annotator/ocr-post-correction/', views.ocr_post_correction, name='ocr_post_correction'),
+    path('annotator/ocr/', views.ocr_frontend, name='ocr_frontend'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
