@@ -54,6 +54,8 @@ from django.core.files.storage import FileSystemStorage
 from google.cloud import vision
 from google.protobuf.json_format import MessageToJson
 from pdf2image import convert_from_path
+from django.views.decorators.csrf import csrf_exempt
+
 
 import sys
 if sys.version_info < (3, 10):
@@ -547,6 +549,7 @@ def ocr_frontend(request):
     return render(request, "ocr_frontend.html", {})
 
 @api_view(['POST'])
+@csrf_exempt
 def ocr_post_correction(request):
     global ocr_client, ocr_api_usage
     auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
