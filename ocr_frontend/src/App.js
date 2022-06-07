@@ -19,7 +19,8 @@ function App() {
 
   function handleSubmit(event) {
     event.preventDefault()
-    const url = '/annotator/ocr-post-correction/';
+    const url = 'http://localhost:8088/annotator/ocr-post-correction/';
+    //const url = '/annotator/ocr-post-correction/';
     const formData = new FormData();
     formData.append('file', file);
     formData.append('fileName', file.name);
