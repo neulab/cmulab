@@ -562,6 +562,7 @@ def ocr_post_correction(request):
     else:
         return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
+        params = json.loads(request.POST.get("params", "{}"))
         fs = FileSystemStorage()
         text = {}
         images = []
@@ -584,8 +585,12 @@ def ocr_post_correction(request):
             with io.open(filepath, "rb") as image_file:
                 content = image_file.read()
                 image = vision.Image(content=content)
-                response = ocr_client.document_text_detection(image=image)
-                text[os.path.basename(image_file.name)] = response.full_text_annotation.text
+                if params.get("debug", False):
+                    response_text = "Sample text"
+                else:
+                    response = ocr_client.document_text_detection(image=image)
+                    response_text = response.full_text_annotation.text
+                text[os.path.basename(image_file.name)] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
 @login_required(login_url='')

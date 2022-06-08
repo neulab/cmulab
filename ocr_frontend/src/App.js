@@ -24,6 +24,7 @@ function App() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('fileName', file.name);
+    formData.append('params', '{"debug": 1}')
     const config = {
       headers: {
         'content-type': 'multipart/form-data',
