@@ -567,6 +567,10 @@ def ocr_post_correction(request):
         text = {}
         images = []
         for uploaded_file in request.FILES.getlist('file'):
+            # TODO: save these files (along with transcripts)
+            # newdoc = Document(docfile = request.FILES['docfile'])
+            # newdoc.owner = request.user
+            # newdoc.save()
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = fs.path(filename)
             if uploaded_file.name.endswith('.pdf'):
@@ -574,6 +578,8 @@ def ocr_post_correction(request):
                 images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_folder=tmp_dir)
             else:
                 images.append(filepath)
+        # TODO: retrieve images/transcripts from db
+        # documents = Document.objects.filter(owner=request.user)
         for filepath in images:
             print(filepath)
             print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
