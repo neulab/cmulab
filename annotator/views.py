@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
 
 from rest_framework import generics
 from rest_framework import status
@@ -54,6 +54,8 @@ from django.core.files.storage import FileSystemStorage
 from google.cloud import vision
 from google.protobuf.json_format import MessageToJson
 from pdf2image import convert_from_path
+from django.views.decorators.csrf import csrf_exempt
+
 
 import sys
 if sys.version_info < (3, 10):
@@ -543,7 +545,11 @@ def list_home(request):
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
 
+def ocr_frontend(request):
+    return render(request, "ocr_frontend.html", {})
+
 @api_view(['POST'])
+@csrf_exempt
 def ocr_post_correction(request):
     global ocr_client, ocr_api_usage
     auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
@@ -556,10 +562,15 @@ def ocr_post_correction(request):
     else:
         return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
+        params = json.loads(request.POST.get("params", "{}"))
         fs = FileSystemStorage()
         text = {}
         images = []
         for uploaded_file in request.FILES.getlist('file'):
+            # TODO: save these files (along with transcripts)
+            # newdoc = Document(docfile = request.FILES['docfile'])
+            # newdoc.owner = request.user
+            # newdoc.save()
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = fs.path(filename)
             if uploaded_file.name.endswith('.pdf'):
@@ -567,19 +578,25 @@ def ocr_post_correction(request):
                 images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_folder=tmp_dir)
             else:
                 images.append(filepath)
+        # TODO: retrieve images/transcripts from db
+        # documents = Document.objects.filter(owner=request.user)
         for filepath in images:
             print(filepath)
             print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
             print(ocr_api_usage)
             # TODO: write a better rate-limiting system
             if ocr_api_usage.get(username, 0) > 100:
-                continue
+                return HttpResponseForbidden()
             ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
             with io.open(filepath, "rb") as image_file:
                 content = image_file.read()
                 image = vision.Image(content=content)
-                response = ocr_client.document_text_detection(image=image)
-                text[os.path.basename(image_file.name)] = response.full_text_annotation.text
+                if params.get("debug", False):
+                    response_text = "Sample text"
+                else:
+                    response = ocr_client.document_text_detection(image=image)
+                    response_text = response.full_text_annotation.text
+                text[os.path.basename(image_file.name)] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
 @login_required(login_url='')
