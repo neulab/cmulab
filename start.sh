@@ -8,6 +8,7 @@ pkill -f rqworker
 pkill -f runserver
 pkill -f redis-server
 
+cd $(readlink -f $(dirname $0))
 python manage.py makemigrations annotator
 python manage.py migrate
 export PYTHONUNBUFFERED=1
