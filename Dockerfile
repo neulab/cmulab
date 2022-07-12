@@ -6,7 +6,7 @@ ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update --fix-missing && \
     apt-get install -y wget bzip2 ca-certificates curl git \
-    ffmpeg libsndfile1 vim redis-server && \
+    ffmpeg libsndfile1 vim redis-server poppler-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
