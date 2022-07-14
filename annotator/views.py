@@ -546,6 +546,7 @@ def list_home(request):
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
 
 def ocr_frontend(request):
+    # TODO: fix this, no longer works (ocr_frontend.html used to be symlink to index.html)
     return render(request, "ocr_frontend.html", {})
 
 @api_view(['POST'])
@@ -598,6 +599,15 @@ def ocr_post_correction(request):
                     response_text = response.full_text_annotation.text
                 text[os.path.basename(image_file.name)] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
+
+@api_view(['POST'])
+@csrf_exempt
+def test_single_source_ocr(request):
+    params = {}
+    job = django_rq.enqueue(test_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user)
+
+def test_single_source_ocr_job(wdir, logfile, model, params, user):
+    pass
 
 @login_required(login_url='')
 def get_auth_token(request):
