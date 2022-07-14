@@ -5,3 +5,4 @@ speech/migrations/
 cmulab.egg-info/
 *.pyc
 annotator/media/
+log.*
