@@ -70,6 +70,9 @@ for plugin in entry_points(group='cmulab.plugins'):
 ocr_client = vision.ImageAnnotatorClient()
 ocr_api_usage = {}
 
+TEST_SINGLE_SOURCE_SCRIPT = os.environ.get(TEST_SINGLE_SOURCE_SCRIPT, "/ocr-post-correction/test_single-source.sh")
+TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get(TRAIN_SINGLE_SOURCE_SCRIPT, "/ocr-post-correction/train_single-source.sh")
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -607,7 +610,16 @@ def test_single_source_ocr(request):
     job = django_rq.enqueue(test_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user)
 
 def test_single_source_ocr_job(wdir, logfile, model, params, user):
-    pass
+    rc = subprocess.call(TEST_SINGLE_SOURCE_SCRIPT, shell=True)
+
+@api_view(['POST'])
+@csrf_exempt
+def train_single_source_ocr(request):
+    params = {}
+    job = django_rq.enqueue(train_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user)
+
+def train_single_source_ocr_job(wdir, logfile, model, params, user):
+    rc = subprocess.call(TRAIN_SINGLE_SOURCE_SCRIPT, shell=True)
 
 @login_required(login_url='')
 def get_auth_token(request):
