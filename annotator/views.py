@@ -26,7 +26,7 @@ from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSe
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 from annotator.BackendModels import MLModels
-from annotator.models import Document
+from annotator.models import Document, Transcript
 from annotator.forms import DocumentForm
 
 import django_rq
@@ -571,10 +571,11 @@ def ocr_post_correction(request):
         text = {}
         images = []
         for uploaded_file in request.FILES.getlist('file'):
-            # TODO: save these files (along with transcripts)
-            # newdoc = Document(docfile = request.FILES['docfile'])
-            # newdoc.owner = request.user
-            # newdoc.save()
+            if params.get("store_files", False):
+                # TODO: save these files (along with transcripts)
+                newdoc = Document(docfile = uploaded_file)
+                newdoc.owner = request.user
+                newdoc.save()
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = fs.path(filename)
             if uploaded_file.name.endswith('.pdf'):
@@ -600,6 +601,11 @@ def ocr_post_correction(request):
                 else:
                     response = ocr_client.document_text_detection(image=image)
                     response_text = response.full_text_annotation.text
+                    if params.get("store_files", False):
+                        # TODO: store these transcripts in the db
+                        newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
+                        newdoc.owner = request.user
+                        newdoc.save()
                 text[os.path.basename(image_file.name)] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 

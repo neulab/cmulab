@@ -16,6 +16,11 @@ class Document(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, default=1, null = True, on_delete=models.CASCADE)
     docfile = models.FileField(upload_to='documents/%Y/%m/%d')
 
+class Transcript(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, default=1, null = True, on_delete=models.CASCADE)
+    filename = models.CharField(max_length=200, blank=True, default='', help_text='filename')
+    text = models.TextField(max_length=10000, help_text='TBD')
+
 class Mlmodel(models.Model):
 	'''
 	Operations about annotation models
