@@ -70,8 +70,8 @@ for plugin in entry_points(group='cmulab.plugins'):
 ocr_client = vision.ImageAnnotatorClient()
 ocr_api_usage = {}
 
-TEST_SINGLE_SOURCE_SCRIPT = os.environ.get(TEST_SINGLE_SOURCE_SCRIPT, "/ocr-post-correction/test_single-source.sh")
-TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get(TRAIN_SINGLE_SOURCE_SCRIPT, "/ocr-post-correction/train_single-source.sh")
+TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
+TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 
 
 @api_view(['GET'])
