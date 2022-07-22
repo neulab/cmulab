@@ -590,15 +590,15 @@ def ocr_post_correction(request):
             print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
             print(ocr_api_usage)
             # TODO: write a better rate-limiting system
-            if ocr_api_usage.get(username, 0) > 100:
-                return HttpResponseForbidden()
-            ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
             with io.open(filepath, "rb") as image_file:
                 content = image_file.read()
                 image = vision.Image(content=content)
                 if params.get("debug", False):
                     response_text = "Sample text"
                 else:
+                    if ocr_api_usage.get(username, 0) > 100:
+                        return HttpResponseForbidden()
+                    ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
                     response = ocr_client.document_text_detection(image=image)
                     response_text = response.full_text_annotation.text
                     if params.get("store_files", False):
