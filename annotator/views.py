@@ -70,6 +70,7 @@ for plugin in entry_points(group='cmulab.plugins'):
 ocr_client = vision.ImageAnnotatorClient()
 ocr_api_usage = {}
 
+OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
 TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
 TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 
@@ -567,8 +568,8 @@ def ocr_post_correction(request):
         return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
         params = json.loads(request.POST.get("params", "{}"))
+        fileids = json.loads(request.POST.get("fileids", "{}"))
         fs = FileSystemStorage()
-        text = {}
         images = []
         for uploaded_file in request.FILES.getlist('file'):
             if params.get("store_files", False):
@@ -578,13 +579,16 @@ def ocr_post_correction(request):
                 newdoc.save()
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = fs.path(filename)
+            fileids[filepath] = fileids.get(uploaded_file.name, os.path.basename(filepath))
             if uploaded_file.name.endswith('.pdf'):
+                # TODO: cleanup tmpdir?
                 tmp_dir = tempfile.mkdtemp(prefix="pdf2image_")
-                images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_folder=tmp_dir)
+                images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_file=uploaded_file.name + '_', output_folder=tmp_dir)
             else:
                 images.append(filepath)
         # TODO: retrieve images/transcripts from db
         # documents = Document.objects.filter(owner=request.user)
+        text = {}
         for filepath in images:
             print(filepath)
             print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
@@ -606,7 +610,8 @@ def ocr_post_correction(request):
                         newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
                         newdoc.owner = request.user
                         newdoc.save()
-                text[os.path.basename(image_file.name)] = response_text
+                fileid = fileids.get(filepath, os.path.basename(filepath))
+                text[fileid] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
 @api_view(['POST'])

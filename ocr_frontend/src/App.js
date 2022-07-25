@@ -22,8 +22,8 @@ function App() {
 
   function handleSubmit(event) {
     event.preventDefault()
-    //const url = 'http://localhost:8088/annotator/ocr-post-correction/';
-    const url = 'http://rabat.sp.cs.cmu.edu:8088/annotator/ocr-post-correction/';
+    const url = 'http://localhost:8088/annotator/ocr-post-correction/';
+    //const url = 'http://rabat.sp.cs.cmu.edu:8088/annotator/ocr-post-correction/';
     //const url = '/annotator/ocr-post-correction/';
     const formData = new FormData();
     file.forEach(f=>{
@@ -32,12 +32,12 @@ function App() {
     //formData.append('file', file);
     //formData.append('fileName', file.name);
     formData.append('params', '{"debug": 1}')
-    formData.append('fileids', '{"filename1": "fileid1", "filename2": "fileid2"}')
+    formData.append('fileids', '{"001.griko.png": "fileid_001.griko.png", "filename2": "fileid2"}')
     const config = {
       headers: {
         'content-type': 'multipart/form-data',
-        //'Authorization': '8470ede027588b80c5b82ab5c9e78b8daea68635'
-        'Authorization': '5e72d818c2f4250687f090bb7ec5466184982edc'
+        'Authorization': '8470ede027588b80c5b82ab5c9e78b8daea68635'
+        //'Authorization': '5e72d818c2f4250687f090bb7ec5466184982edc'
       },
     };
     axios.post(url, formData, config).then((response) => {
