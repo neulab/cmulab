@@ -614,20 +614,32 @@ def ocr_post_correction(request):
                 text[fileid] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
+
 @api_view(['POST'])
 @csrf_exempt
 def test_single_source_ocr(request):
-    params = {}
-    job = django_rq.enqueue(test_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user)
+    args = ["arg1", "arg2"]
+    tmp_dir = tempfile.mkdtemp(prefix="test_single_source_ocr_")
+    job_id = os.path.basename(tmp_dir)
+    log_file = job_id + "_log.txt"
+    job = django_rq.enqueue(test_single_source_ocr_job,
+                            tmp_dir, log_file, args, request.user,
+                            job_id=job_id, result_ttl=-1)
+    return Response("Done!", status=status.HTTP_202_ACCEPTED)
 
-def test_single_source_ocr_job(wdir, logfile, model, params, user):
-    rc = subprocess.call(TEST_SINGLE_SOURCE_SCRIPT, shell=True)
+
+def test_single_source_ocr_job(wdir, logfilename, args, user):
+    fs = FileSystemStorage()
+    logfile = fs.path(fs.get_available_name(logfilename))
+    print(logfile)
+    rc = subprocess.call([os.path.join(OCR_POST_CORRECTION, "tests", "echo.sh"), logfile] + args)
+
 
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
     params = {}
-    job = django_rq.enqueue(train_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user)
+    job = django_rq.enqueue(train_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user, result_ttl=-1)
 
 def train_single_source_ocr_job(wdir, logfile, model, params, user):
     rc = subprocess.call(TRAIN_SINGLE_SOURCE_SCRIPT, shell=True)

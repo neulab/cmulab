@@ -13,6 +13,7 @@ python manage.py makemigrations annotator
 python manage.py migrate
 export PYTHONUNBUFFERED=1
 export GOOGLE_APPLICATION_CREDENTIALS
+export OCR_POST_CORRECTION
 nohup python -u manage.py runserver 0.0.0.0:8088 --verbosity 2 &> log.runserver_8088 &
 nohup redis-server redis.conf &> log.redis-server &
 sleep 1
