@@ -621,16 +621,18 @@ def test_single_source_ocr(request):
     args = ["arg1", "arg2"]
     tmp_dir = tempfile.mkdtemp(prefix="test_single_source_ocr_")
     job_id = os.path.basename(tmp_dir)
-    log_file = job_id + "_log.txt"
-    job = django_rq.enqueue(test_single_source_ocr_job,
-                            tmp_dir, log_file, args, request.user,
-                            job_id=job_id, result_ttl=-1)
-    return Response("Done!", status=status.HTTP_202_ACCEPTED)
-
-
-def test_single_source_ocr_job(wdir, logfilename, args, user):
+    logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
+    print(logfile)
+    job = django_rq.enqueue(test_single_source_ocr_job,
+                            tmp_dir, logfile, args, request.user,
+                            job_id=job_id, result_ttl=-1)
+    logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
+    return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
+
+
+def test_single_source_ocr_job(wdir, logfile, args, user):
     print(logfile)
     rc = subprocess.call([os.path.join(OCR_POST_CORRECTION, "tests", "echo.sh"), logfile] + args)
 
@@ -638,11 +640,23 @@ def test_single_source_ocr_job(wdir, logfilename, args, user):
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
-    params = {}
-    job = django_rq.enqueue(train_single_source_ocr_job, tmp_dir, log_file, pretrained_model, params, request.user, result_ttl=-1)
+    args = ["arg1", "arg2"]
+    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_")
+    job_id = os.path.basename(tmp_dir)
+    logfilename = job_id + "_log.txt"
+    fs = FileSystemStorage()
+    logfile = fs.path(fs.get_available_name(logfilename))
+    print(logfile)
+    job = django_rq.enqueue(test_single_source_ocr_job,
+                            tmp_dir, logfile, args, request.user,
+                            job_id=job_id, result_ttl=-1)
+    logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
+    return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
-def train_single_source_ocr_job(wdir, logfile, model, params, user):
-    rc = subprocess.call(TRAIN_SINGLE_SOURCE_SCRIPT, shell=True)
+
+def train_single_source_ocr_job(wdir, logfile, args, user):
+    print(logfile)
+    rc = subprocess.call([os.path.join(OCR_POST_CORRECTION, "tests", "echo.sh"), logfile] + args)
 
 @login_required(login_url='')
 def get_auth_token(request):
