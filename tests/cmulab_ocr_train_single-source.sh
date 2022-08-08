@@ -1,0 +1,101 @@
+#!/bin/bash
+
+[[ $# -ne 2 ]] && { echo "Usage: $0 dataset_dir/ log_file"; exit 1; }
+
+dataset_dir=$(readlink -ve $1) || exit 1
+log_file=$2
+mkdir -p $(dirname $log_file)
+
+expt_folder=${dataset_dir}/expt/
+
+
+cd $(dirname $0)
+
+
+# Set pretraining, training and development set files
+pretrain_src="${dataset_dir}/postcorrection/pretraining/pretrain_src1.txt"
+
+train_src="${dataset_dir}/postcorrection/training/train_src1.txt"
+train_tgt="${dataset_dir}/postcorrection/training/train_tgt.txt"
+
+dev_src="${dataset_dir}/postcorrection/training/dev_src1.txt"
+dev_tgt="${dataset_dir}/postcorrection/training/dev_tgt.txt"
+
+# Set experiment parameters
+
+dynet_mem=3000 # Memory in MB available for training
+
+params="--pretrain_dec --pretrain_s2s --pretrain_enc --pointer_gen --coverage --diag_loss 2"
+pretrained_model_name="my_pretrained_model"
+trained_model_name="my_trained_model"
+
+# ------------------------------END: Required experimental settings------------------------------
+
+
+
+# Create experiment directories
+mkdir -p $expt_folder
+mkdir $expt_folder/debug_outputs
+mkdir $expt_folder/models
+mkdir $expt_folder/outputs
+mkdir $expt_folder/pretrain_logs
+mkdir $expt_folder/pretrain_models
+mkdir $expt_folder/train_logs
+mkdir $expt_folder/vocab
+
+conda activate ocr-post-correction
+source activate ocr-post-correction
+set -x
+
+{
+
+# Denoise outputs for pretraining
+python -u utils/denoise_outputs.py \
+--train_src1 $train_src \
+--train_tgt $train_tgt \
+--input $pretrain_src \
+--output $pretrain_src'.denoised'
+
+pretrain_tgt=$pretrain_src'.denoised'
+
+
+# Create character vocabulary for the post-correction model
+python -u postcorrection/create_vocab.py \
+--src1_files $train_src $dev_src \
+--tgt_files $train_tgt $dev_tgt \
+--output_folder $expt_folder/vocab
+
+
+# Pretrain the model (add --dynet-gpu for using GPU)
+# See postcorrection/opts.py for all the options
+python -u postcorrection/multisource_wrapper.py \
+--dynet-mem $dynet_mem \
+--dynet-autobatch 1 \
+--pretrain_src1 $pretrain_src \
+--pretrain_tgt $pretrain_tgt \
+$params \
+--single \
+--vocab_folder $expt_folder/vocab \
+--output_folder $expt_folder \
+--model_name $pretrained_model_name \
+--pretrain_only
+
+
+# Load the pretrained model and train the model using manually annotated training data (add --dynet-gpu for using GPU)
+# See postcorrection/opts.py for all the options
+python -u postcorrection/multisource_wrapper.py \
+--dynet-mem $dynet_mem \
+--dynet-autobatch 1 \
+--train_src1 $train_src \
+--train_tgt $train_tgt \
+--dev_src1 $dev_src \
+--dev_tgt $dev_tgt \
+$params \
+--single \
+--vocab_folder $expt_folder/vocab \
+--output_folder $expt_folder \
+--load_model $expt_folder"/pretrain_models/"$pretrained_model_name \
+--model_name $trained_model_name \
+--train_only
+
+} 2>&1 | tee $log_file
