@@ -629,7 +629,7 @@ def test_single_source_ocr(request):
     model_dir = "my_expt_singlesource/"
     args = [test_file, model_dir, logfile]
     job = django_rq.enqueue(test_single_source_ocr_job,
-                            tmp_dir, logfile, args, request.user,
+                            tmp_dir, args, request.user,
                             job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
@@ -644,23 +644,26 @@ def test_single_source_ocr_job(wdir, args, user):
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
-    args = ["arg1", "arg2"]
     tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_")
     job_id = os.path.basename(tmp_dir)
     logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
+    dataset_dir ="sample_dataset/postcorrection/training/test_src1.txt"
+    args = [dataset_dir, logfile]
     job = django_rq.enqueue(test_single_source_ocr_job,
-                            tmp_dir, logfile, args, request.user,
+                            tmp_dir, args, request.user,
                             job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
 
-def train_single_source_ocr_job(wdir, logfile, args, user):
+def train_single_source_ocr_job(wdir, args, user):
     print(logfile)
-    rc = subprocess.call([os.path.join(OCR_POST_CORRECTION, "tests", "echo.sh"), logfile] + args)
+    run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
+    rc = subprocess.call([run_script] + args)
+
 
 @login_required(login_url='')
 def get_auth_token(request):
