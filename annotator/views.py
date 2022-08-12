@@ -598,7 +598,11 @@ def ocr_post_correction(request):
                 content = image_file.read()
                 image = vision.Image(content=content)
                 if params.get("debug", False):
-                    response_text = "Sample text"
+                    response_text = '\n'.join([
+                        "Sample Title",
+                        "This is just a line of sample text.",
+                        "Set 'debug' param to 0 to get OCR transcripts."
+                    ])
                 else:
                     if ocr_api_usage.get(username, 0) > 100:
                         return HttpResponseForbidden()
