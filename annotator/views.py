@@ -2,6 +2,9 @@ import os
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
+from django.core.mail import EmailMessage, send_mail
+from django.conf import settings
+
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -672,6 +675,8 @@ def train_single_source_ocr_job(wdir, args, user):
 @login_required(login_url='')
 def get_auth_token(request):
     token, created = Token.objects.get_or_create(user=request.user)
+    # sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab")
+    # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
     return HttpResponse(token.key)
 
 

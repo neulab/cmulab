@@ -197,3 +197,9 @@ MEDIA_URL = '/annotator/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'sender@gmail.com'
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_PORT = 587
