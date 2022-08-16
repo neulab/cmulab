@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -i
 
 [[ $# -ne 3 ]] && { echo "Usage: $0 test_file.txt model_dir/ log_file"; exit 1; }
 
@@ -21,6 +21,7 @@ trained_model_name="my_trained_model"
 # ------------------------------END: Required experimental settings------------------------------
 
 
+eval $(conda shell.bash hook)
 conda activate ocr-post-correction
 source activate ocr-post-correction
 set -x

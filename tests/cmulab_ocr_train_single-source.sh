@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -i
 
 [[ $# -ne 2 ]] && { echo "Usage: $0 dataset_dir/ log_file"; exit 1; }
 
@@ -43,8 +43,9 @@ mkdir $expt_folder/pretrain_models
 mkdir $expt_folder/train_logs
 mkdir $expt_folder/vocab
 
+eval $(conda shell.bash hook)
 conda activate ocr-post-correction
-source activate ocr-post-correction
+#source activate ocr-post-correction
 set -x
 
 {
@@ -79,7 +80,6 @@ $params \
 --output_folder $expt_folder \
 --model_name $pretrained_model_name \
 --pretrain_only
-
 
 # Load the pretrained model and train the model using manually annotated training data (add --dynet-gpu for using GPU)
 # See postcorrection/opts.py for all the options

@@ -643,7 +643,6 @@ def test_single_source_ocr(request):
 
 
 def test_single_source_ocr_job(wdir, args, user):
-    print(logfile)
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
     rc = subprocess.call([run_script] + args)
 
@@ -657,9 +656,9 @@ def train_single_source_ocr(request):
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
-    dataset_dir ="sample_dataset/postcorrection/training/test_src1.txt"
+    dataset_dir ="/path/to/sample_dataset/"
     args = [dataset_dir, logfile]
-    job = django_rq.enqueue(test_single_source_ocr_job,
+    job = django_rq.enqueue(train_single_source_ocr_job,
                             tmp_dir, args, request.user,
                             job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
@@ -667,7 +666,6 @@ def train_single_source_ocr(request):
 
 
 def train_single_source_ocr_job(wdir, args, user):
-    print(logfile)
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     rc = subprocess.call([run_script] + args)
 
