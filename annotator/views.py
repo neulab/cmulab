@@ -645,6 +645,7 @@ def test_single_source_ocr(request):
 def test_single_source_ocr_job(wdir, args, user):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
     rc = subprocess.call([run_script] + args)
+    # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
 
 
 @api_view(['POST'])
@@ -656,18 +657,22 @@ def train_single_source_ocr(request):
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
-    dataset_dir ="/path/to/sample_dataset/"
-    args = [dataset_dir, logfile]
-    job = django_rq.enqueue(train_single_source_ocr_job,
-                            tmp_dir, args, request.user,
-                            job_id=job_id, result_ttl=-1)
+    train_data = request.FILES['trainData']
+    train_filename = fs.save(train_data.name, train_data)
+    train_filepath = fs.path(train_filename)
+    unlabeled_data = request.FILES['unlabeledData']
+    unlabeled_filename = fs.save(unlabeled_data.name, unlabeled_data)
+    unlabeled_filepath = fs.path(unlabeled_filename)
+    args = [train_filepath, unlabeled_filepath, tmp_dir, logfile]
+    job = django_rq.enqueue(train_single_source_ocr_job, args, request.user, job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
 
-def train_single_source_ocr_job(wdir, args, user):
+def train_single_source_ocr_job(args, user):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     rc = subprocess.call([run_script] + args)
+    # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
 
 
 @login_required(login_url='')
