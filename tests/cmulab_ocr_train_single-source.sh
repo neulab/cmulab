@@ -1,25 +1,15 @@
 #!/bin/bash -i
 
-[[ $# -ne 2 ]] && { echo "Usage: $0 dataset_dir/ log_file"; exit 1; }
+[[ $# -ne 4 ]] && { echo "Usage: $0 train_data.zip unlabeled_data.zip working_dir/ log_file"; exit 1; }
 
-dataset_dir=$(readlink -ve $1) || exit 1
-log_file=$2
-mkdir -p $(dirname $log_file)
-
-expt_folder=${dataset_dir}/expt/
+train_data=$(readlink -ve $1) || exit 1
+unlabeled_data=$(readlink -ve $2) || exit 1
+working_dir=$(readlink -ve $3) || exit 1
+log_file=$(readlink -m $4)
 
 
 cd $(dirname $0)
 
-
-# Set pretraining, training and development set files
-pretrain_src="${dataset_dir}/postcorrection/pretraining/pretrain_src1.txt"
-
-train_src="${dataset_dir}/postcorrection/training/train_src1.txt"
-train_tgt="${dataset_dir}/postcorrection/training/train_tgt.txt"
-
-dev_src="${dataset_dir}/postcorrection/training/dev_src1.txt"
-dev_tgt="${dataset_dir}/postcorrection/training/dev_tgt.txt"
 
 # Set experiment parameters
 
@@ -32,8 +22,26 @@ trained_model_name="my_trained_model"
 # ------------------------------END: Required experimental settings------------------------------
 
 
+mkdir -p $(dirname $log_file)
+
+
+eval $(conda shell.bash hook)
+conda activate ocr-post-correction
+#source activate ocr-post-correction
+set -x
+
+{
+
+annotated_dir=${working_dir}/text_outputs/corrected/
+mkdir -p $annotated_dir
+(cd $annotated_dir; unzip $train_data)
+
+unannotated_src=${working_dir}/text_outputs/uncorrected/src1/
+mkdir -p $unannotated_src
+(cd $unannotated_src; unzip -j $unlabeled_data)
 
 # Create experiment directories
+expt_folder=${working_dir}/expt/
 mkdir -p $expt_folder
 mkdir $expt_folder/debug_outputs
 mkdir $expt_folder/models
@@ -43,12 +51,20 @@ mkdir $expt_folder/pretrain_models
 mkdir $expt_folder/train_logs
 mkdir $expt_folder/vocab
 
-eval $(conda shell.bash hook)
-conda activate ocr-post-correction
-#source activate ocr-post-correction
-set -x
+python -u utils/prepare_data.py  \
+    --unannotated_src1 $unannotated_src  \
+    --annotated_src1 ${annotated_dir}/src1*/  \
+    --annotated_tgt ${annotated_dir}/tgt/  \
+    --output_folder $(working_dir)/postcorrection/
 
-{
+
+# Set pretraining, training and development set files
+pretrain_src="${working_dir}/postcorrection/pretraining/pretrain_src1.txt"
+train_src="${working_dir}/postcorrection/training/train_src1.txt"
+train_tgt="${working_dir}/postcorrection/training/train_tgt.txt"
+dev_src="${working_dir}/postcorrection/training/dev_src1.txt"
+dev_tgt="${working_dir}/postcorrection/training/dev_tgt.txt"
+
 
 # Denoise outputs for pretraining
 python -u utils/denoise_outputs.py \
