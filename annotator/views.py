@@ -631,18 +631,20 @@ def test_single_source_ocr(request):
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
-    # TODO: update these
-    test_file ="sample_dataset/postcorrection/training/test_src1.txt"
-    model_dir = "my_expt_singlesource/"
-    args = [test_file, model_dir, logfile]
-    job = django_rq.enqueue(test_single_source_ocr_job,
-                            tmp_dir, args, request.user,
-                            job_id=job_id, result_ttl=-1)
+    model_id = request.POST["model_id"]
+    print(model_id)
+    # TODO: get model_dir from db
+    model_dir = "/tmp/" + model_id
+    test_data = request.FILES['testData']
+    test_filename = fs.save(test_data.name, test_data)
+    test_filepath = fs.path(test_filename)
+    args = [test_filepath, model_dir, tmp_dir, logfile]
+    job = django_rq.enqueue(test_single_source_ocr_job, args, request.user, job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
 
-def test_single_source_ocr_job(wdir, args, user):
+def test_single_source_ocr_job(args, user):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
     rc = subprocess.call([run_script] + args)
     # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
@@ -672,6 +674,7 @@ def train_single_source_ocr(request):
 def train_single_source_ocr_job(args, user):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     rc = subprocess.call([run_script] + args)
+    # TODO: send log file with the email
     # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
 
 

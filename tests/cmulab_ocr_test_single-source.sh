@@ -1,11 +1,14 @@
 #!/bin/bash -i
 
-[[ $# -ne 3 ]] && { echo "Usage: $0 test_file.txt model_dir/ log_file"; exit 1; }
+[[ $# -ne 4 ]] && { echo "Usage: $0 test_file.txt model_dir/ output_folder/ log_file"; exit 1; }
 
 test_src=$(readlink -ve $1) || exit 1
 expt_folder=$(readlink -ve $2) || exit 1
-log_file=$3
+output_folder=$(readlink -ve $3) || exit 1
+log_file=$4
+
 mkdir -p $(dirname $log_file)
+mkdir -p $output_folder
 
 cd $(dirname $0)
 
@@ -36,7 +39,7 @@ python postcorrection/multisource_wrapper.py \
 $params \
 --single \
 --vocab_folder $expt_folder/vocab \
---output_folder $expt_folder \
+--output_folder $output_folder \
 --load_model $expt_folder"/models/"$trained_model_name \
 --testing
 
