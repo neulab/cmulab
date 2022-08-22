@@ -31,16 +31,16 @@ set -x
 
 {
 
-# Load the trained model and get the predicted output on the test set (add --dynet-gpu for using GPU)
-python postcorrection/multisource_wrapper.py \
---dynet-mem $dynet_mem \
---dynet-autobatch 1 \
---test_src1 $test_src \
-$params \
---single \
---vocab_folder $expt_folder/vocab \
---output_folder $output_folder \
---load_model $expt_folder"/models/"$trained_model_name \
---testing
+    # Load the trained model and get the predicted output on the test set (add --dynet-gpu for using GPU)
+    python postcorrection/multisource_wrapper.py \
+    --dynet-mem $dynet_mem \
+    --dynet-autobatch 1 \
+    --test_src1 $test_src \
+    $params \
+    --single \
+    --vocab_folder $expt_folder/vocab \
+    --output_folder $output_folder \
+    --load_model $expt_folder"/models/"$trained_model_name \
+    --testing
 
 } 2>&1 | tee $log_file
