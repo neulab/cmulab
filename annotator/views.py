@@ -631,7 +631,7 @@ def test_single_source_ocr(request):
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
-    email = request.POST["email"]
+    email = request.POST.get("email", "")
     model_id = request.POST["model_id"]
     print(model_id)
     # TODO: get model_dir from db
@@ -648,8 +648,9 @@ def test_single_source_ocr(request):
 def test_single_source_ocr_job(args, user, job_id, email):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
     rc = subprocess.call([run_script] + args)
-    # TODO: send log file with the email
-    send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
+    # TODO: send log file with the email, do a better job of validating emails
+    if '@' in email:
+        send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
 
 
 @api_view(['POST'])
@@ -661,7 +662,7 @@ def train_single_source_ocr(request):
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
     print(logfile)
-    email = request.POST["email"]
+    email = request.POST.get("email", "")
     model_id = request.POST["model_id"]
     train_data = request.FILES['trainData']
     train_filename = fs.save(train_data.name, train_data)
@@ -678,8 +679,9 @@ def train_single_source_ocr(request):
 def train_single_source_ocr_job(args, user, job_id, email):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     rc = subprocess.call([run_script] + args)
-    # TODO: send log file with the email
-    send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
+    # TODO: send log file with the email, do a better job of validating emails
+    if '@' in email:
+        send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
 
 
 @login_required(login_url='')
