@@ -650,7 +650,8 @@ def test_single_source_ocr_job(args, user, job_id, email):
     rc = subprocess.call([run_script] + args)
     # TODO: send log file with the email, do a better job of validating emails
     if '@' in email:
-        send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
+        sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+        send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
 
 
 @api_view(['POST'])
@@ -681,14 +682,15 @@ def train_single_source_ocr_job(args, user, job_id, email):
     rc = subprocess.call([run_script] + args)
     # TODO: send log file with the email, do a better job of validating emails
     if '@' in email:
-        send_mail(job_id + ' has completed', 'Log file attached below.', "cmulab.dev@gmail.com", [email])
+        sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+        send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
 
 
 @login_required(login_url='')
 def get_auth_token(request):
     token, created = Token.objects.get_or_create(user=request.user)
-    # sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab")
-    # send_mail('title', 'body', "sender@gmail.com", ["recipient@example.com"])
+    # sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+    # send_mail('title', 'body', sender, [email])
     return HttpResponse(token.key)
 
 
