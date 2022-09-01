@@ -49,6 +49,7 @@ urlpatterns = [
     path('annotator/test_single_source_ocr/', views.test_single_source_ocr, name='test_single_source_ocr'),
     path('annotator/train_single_source_ocr/', views.train_single_source_ocr, name='train_single_source_ocr'),
     path('annotator/ocr/', views.ocr_frontend, name='ocr_frontend'),
+    path('annotator/download_file/<str:filename>', views.download_file, name='download_file'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

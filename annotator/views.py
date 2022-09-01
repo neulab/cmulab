@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
+from django.views.static import serve
+
 
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -707,6 +709,13 @@ def get_auth_token(request):
     # mail.attach_file(fs.path('test_single_source_ocr_klf60ll8_log.txt'))
     # mail.send()
     return HttpResponse(token.key)
+
+
+def download_file(request, filename):
+    fs = FileSystemStorage()
+    filepath = fs.path(filename)
+    # return HttpResponse(fs.path(filename))
+    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
 
 def get_allosaurus_models(request):
