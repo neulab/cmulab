@@ -577,7 +577,7 @@ def ocr_post_correction(request):
         fs = FileSystemStorage()
         images = []
         for uploaded_file in request.FILES.getlist('file'):
-            if params.get("store_files", False):
+            if params.get("store_files", True):
                 # TODO: save these files (along with transcripts)
                 newdoc = Document(docfile = uploaded_file)
                 newdoc.owner = request.user
@@ -614,11 +614,11 @@ def ocr_post_correction(request):
                     ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
                     response = ocr_client.document_text_detection(image=image)
                     response_text = response.full_text_annotation.text
-                    if params.get("store_files", False):
-                        # TODO: store these transcripts in the db
-                        newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
-                        newdoc.owner = request.user
-                        newdoc.save()
+                if params.get("store_files", True):
+                    # TODO: store these transcripts in the db
+                    newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
+                    newdoc.owner = request.user
+                    newdoc.save()
                 fileid = fileids.get(filepath, os.path.basename(filepath))
                 text[fileid] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
