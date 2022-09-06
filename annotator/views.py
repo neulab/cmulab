@@ -78,6 +78,8 @@ ocr_api_usage = {}
 OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
 TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
 TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
+OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
+IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 3))
 
 
 @api_view(['GET'])
@@ -593,35 +595,80 @@ def ocr_post_correction(request):
                 images.append(filepath)
         # TODO: retrieve images/transcripts from db
         # documents = Document.objects.filter(owner=request.user)
+        if len(images) > IMAGE_SYNCHRONOUS_LIMIT:
+            job_id = '-'.join(["google_vision_ocr", request.user, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")])
+            logfilename = job_id + "_log.txt"
+            fs = FileSystemStorage()
+            logfile = fs.path(fs.get_available_name(logfilename))
+            job = django_rq.enqueue(google_vision_ocr, images, request.user, params, logfile, job_id, job_id=job_id, result_ttl=-1)
+            return Response([{
+                "job_id": job_id,
+                "status_url": request.build_absolute_uri("/annotator/media/" + os.path.basename(log_file)),
+                "status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
         text = {}
         for filepath in images:
-            print(filepath)
-            print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
-            print(ocr_api_usage)
-            # TODO: write a better rate-limiting system
-            with io.open(filepath, "rb") as image_file:
-                content = image_file.read()
-                image = vision.Image(content=content)
-                if params.get("debug", False):
-                    response_text = '\n'.join([
-                        "Sample Title",
-                        "This is just a line of sample text.",
-                        "Set 'debug' param to 0 to get OCR transcripts."
-                    ])
-                else:
-                    if ocr_api_usage.get(username, 0) > 100:
-                        return HttpResponseForbidden()
-                    ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
-                    response = ocr_client.document_text_detection(image=image)
-                    response_text = response.full_text_annotation.text
-                if params.get("store_files", True):
-                    # TODO: store these transcripts in the db
-                    newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
-                    newdoc.owner = request.user
-                    newdoc.save()
-                fileid = fileids.get(filepath, os.path.basename(filepath))
-                text[fileid] = response_text
+            debug = params.get("debug", False)
+            store_files = params.get("store_files", True)
+            response_text = google_vision_ocr(filepath, request.user, debug, store_files)
+            fileid = fileids.get(filepath, os.path.basename(filepath))
+            text[fileid] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
+
+
+def send_job_completion_email(email, subject, message, attachment):
+    # TODO: better email address validation
+    if '@' in email:
+        sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+        # send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
+        mail = EmailMessage(subject, message, sender, [email])
+        if attachment:
+            mail.attach_file(attachment)
+        mail.send()
+
+
+def google_vision_ocr(filepath, request_user, debug=False, store_files=True):
+    global ocr_client, ocr_api_usage
+    username = request_user.get_username()
+    # TODO: write a better rate-limiting system
+    print(filepath)
+    print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+    with io.open(filepath, "rb") as image_file:
+        content = image_file.read()
+        image = vision.Image(content=content)
+        if debug:
+            response_text = '\n'.join([
+                "Sample Title",
+                "This is just a line of sample text.",
+                "Set 'debug' param to 0 to get OCR transcripts."
+            ])
+        else:
+            if ocr_api_usage.get(username, 0) > OCR_API_USAGE_LIMIT:
+                return HttpResponseForbidden()
+            ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
+            response = ocr_client.document_text_detection(image=image)
+            response_text = response.full_text_annotation.text
+        if store_files:
+            # TODO: store these transcripts in the db
+            newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
+            newdoc.owner = request_user
+            newdoc.save()
+    return response_text
+
+
+def google_vision_ocr_job(images, request_user, params, logfile, job_id):
+    username = request_user.get_username()
+    dev_email = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+    email = params.get("email", dev_email)
+    debug = params.get("debug", False)
+    store_files = params.get("store_files", True)
+    for filepath in images:
+        print(filepath)
+        print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+        response_text = google_vision_ocr(filepath, request_user, debug, store_files)
+    # TODO: zip responses and send as attachment
+    subject = job_id + ' has completed'
+    message = 'Log file attached below.'
+    send_job_completion_email(email, subject, message, logfile)
 
 
 @api_view(['POST'])
