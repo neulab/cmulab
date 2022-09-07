@@ -81,7 +81,7 @@ OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correctio
 TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
 TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
-IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 1))
+IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 20))
 
 
 @api_view(['GET'])
@@ -673,7 +673,7 @@ def google_vision_ocr_job(images, request_user, params, logfile, job_id):
         zipfile = logfile + ".zip"
         with ZipFile(zipfile, 'w') as fzip:
             for filepath in images:
-                fzip.write(filepath + ".txt")
+                fzip.write(filepath + ".txt", os.path.basename(filepath) + ".txt")
         print(zipfile)
         flog.write(f"Job {job_id} completed\n")
         flog.write(f"Sending email to {email}...\n")
