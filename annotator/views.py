@@ -7,6 +7,8 @@ from django.conf import settings
 from django.views.static import serve
 
 
+from zipfile import ZipFile
+
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -79,7 +81,7 @@ OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correctio
 TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
 TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
-IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 3))
+IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 1))
 
 
 @api_view(['GET'])
@@ -596,14 +598,14 @@ def ocr_post_correction(request):
         # TODO: retrieve images/transcripts from db
         # documents = Document.objects.filter(owner=request.user)
         if len(images) > IMAGE_SYNCHRONOUS_LIMIT:
-            job_id = '-'.join(["google_vision_ocr", request.user, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")])
+            job_id = '-'.join(["google_vision_ocr", username, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")])
             logfilename = job_id + "_log.txt"
             fs = FileSystemStorage()
             logfile = fs.path(fs.get_available_name(logfilename))
-            job = django_rq.enqueue(google_vision_ocr, images, request.user, params, logfile, job_id, job_id=job_id, result_ttl=-1)
+            job = django_rq.enqueue(google_vision_ocr_job, images, request.user, params, logfile, job_id, job_id=job_id, result_ttl=-1)
             return Response([{
                 "job_id": job_id,
-                "status_url": request.build_absolute_uri("/annotator/media/" + os.path.basename(log_file)),
+                "status_url": request.build_absolute_uri("/annotator/media/" + os.path.basename(logfile)),
                 "status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
         text = {}
         for filepath in images:
@@ -661,14 +663,24 @@ def google_vision_ocr_job(images, request_user, params, logfile, job_id):
     email = params.get("email", dev_email)
     debug = params.get("debug", False)
     store_files = params.get("store_files", True)
-    for filepath in images:
-        print(filepath)
-        print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
-        response_text = google_vision_ocr(filepath, request_user, debug, store_files)
-    # TODO: zip responses and send as attachment
-    subject = job_id + ' has completed'
-    message = 'Log file attached below.'
-    send_job_completion_email(email, subject, message, logfile)
+    with open(logfile, 'w') as flog:
+        for filepath in images:
+            flog.write(f"Processing {filepath}...\n")
+            print(filepath)
+            print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+            response_text = google_vision_ocr(filepath, request_user, debug, store_files)
+            Path(filepath + ".txt").write_text(response_text)
+        zipfile = logfile + ".zip"
+        with ZipFile(zipfile, 'w') as fzip:
+            for filepath in images:
+                fzip.write(filepath + ".txt")
+        print(zipfile)
+        flog.write(f"Job {job_id} completed\n")
+        flog.write(f"Sending email to {email}...\n")
+        subject = job_id + ' has completed'
+        message = 'Log file attached below.'
+        send_job_completion_email(email, subject, message, zipfile)
+        flog.write(f"Email sent to {email}.\n")
 
 
 @api_view(['POST'])
