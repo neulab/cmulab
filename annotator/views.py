@@ -82,6 +82,7 @@ TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-po
 TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
 IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 20))
+MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
 @api_view(['GET'])
@@ -686,7 +687,7 @@ def google_vision_ocr_job(images, request_user, params, logfile, job_id):
 @api_view(['POST'])
 @csrf_exempt
 def test_single_source_ocr(request):
-    tmp_dir = tempfile.mkdtemp(prefix="test_single_source_ocr_")
+    tmp_dir = tempfile.mkdtemp(prefix="test_single_source_ocr_", dir=MEDIA_ROOT)
     job_id = os.path.basename(tmp_dir)
     logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
@@ -718,7 +719,7 @@ def test_single_source_ocr_job(args, user, job_id, email):
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
-    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_")
+    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
     job_id = os.path.basename(tmp_dir)
     logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
