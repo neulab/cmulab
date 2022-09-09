@@ -43,4 +43,6 @@ set -x
     --load_model $expt_folder"/models/"$trained_model_name \
     --testing
 
+    echo "Job completed!"
+
 } 2>&1 | tee $log_file

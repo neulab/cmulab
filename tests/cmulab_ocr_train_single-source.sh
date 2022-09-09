@@ -114,4 +114,6 @@ set -x
     --model_name $trained_model_name \
     --train_only
 
+    echo "Job completed!"
+
 } 2>&1 | tee $log_file
