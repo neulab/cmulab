@@ -1,11 +1,12 @@
 #!/bin/bash -i
 
-[[ $# -ne 4 ]] && { echo "Usage: $0 train_data.zip unlabeled_data.zip working_dir/ log_file"; exit 1; }
+[[ $# -ne 5 ]] && { echo "Usage: $0 src1_data.zip tgt_data.zip unlabeled_data.zip working_dir/ log_file"; exit 1; }
 
-train_data=$(readlink -ve $1) || exit 1
-unlabeled_data=$(readlink -ve $2) || exit 1
-working_dir=$(readlink -ve $3) || exit 1
-log_file=$(readlink -m $4)
+src1_data=$(readlink -ve $1) || exit 1
+tgt_data=$(readlink -ve $2) || exit 1
+unlabeled_data=$(readlink -ve $3) || exit 1
+working_dir=$(readlink -ve $4) || exit 1
+log_file=$(readlink -m $5)
 
 
 cd $(dirname $0)
@@ -33,8 +34,9 @@ set -x
 {
 
     annotated_dir=${working_dir}/text_outputs/corrected/
-    mkdir -p $annotated_dir
-    (cd $annotated_dir; unzip $train_data)
+    mkdir -p ${annotated_dir}/src1 ${annotated_dir}/tgt
+    (cd ${annotated_dir}/src1; unzip -j $src1_data)
+    (cd ${annotated_dir}/tgt; unzip -j $tgt_data)
 
     unannotated_src=${working_dir}/text_outputs/uncorrected/src1/
     mkdir -p $unannotated_src
@@ -53,7 +55,7 @@ set -x
 
     python -u utils/prepare_data.py  \
 	--unannotated_src1 $unannotated_src  \
-	--annotated_src1 ${annotated_dir}/src1*/  \
+	--annotated_src1 ${annotated_dir}/src1/  \
 	--annotated_tgt ${annotated_dir}/tgt/  \
 	--output_folder $(working_dir)/postcorrection/
 
