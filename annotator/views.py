@@ -738,7 +738,10 @@ def train_single_source_ocr(request):
     args = [src_filepath, tgt_filepath, unlabeled_filepath, tmp_dir, logfile]
     job = django_rq.enqueue(train_single_source_ocr_job, args, request.user, job_id, email, job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
-    return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
+    return Response([{
+        "log_file": logfile_url,
+        "model_id": job_id,
+    }], status=status.HTTP_202_ACCEPTED)
 
 
 def train_single_source_ocr_job(args, user, job_id, email):
