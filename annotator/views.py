@@ -1,4 +1,5 @@
 import os
+import re
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
@@ -566,7 +567,6 @@ def ocr_frontend(request):
 @api_view(['POST'])
 @csrf_exempt
 def ocr_post_correction(request):
-    global ocr_client, ocr_api_usage
     auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
     if auth_token:
         try:
@@ -619,8 +619,9 @@ def ocr_post_correction(request):
 
 
 def send_job_completion_email(email, subject, message, attachment):
-    # TODO: better email address validation
-    if '@' in email:
+    # if '@' in email:
+    email_format = r"(^[a-zA-Z0-9'_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    if re.match(email_format, email, re.IGNORECASE):
         sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
         # send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
         mail = EmailMessage(subject, message, sender, [email])
@@ -757,18 +758,12 @@ def train_single_source_ocr_job(args, user, job_id, email):
 @login_required(login_url='')
 def get_auth_token(request):
     token, created = Token.objects.get_or_create(user=request.user)
-    # sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
-    # mail = EmailMessage('subject', 'message', sender, [email])
-    # fs = FileSystemStorage()
-    # mail.attach_file(fs.path('test_single_source_ocr_klf60ll8_log.txt'))
-    # mail.send()
     return HttpResponse(token.key)
 
 
 def download_file(request, filename):
     fs = FileSystemStorage()
     filepath = fs.path(filename)
-    # return HttpResponse(fs.path(filename))
     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
 
