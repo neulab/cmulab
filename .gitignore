@@ -6,3 +6,4 @@ cmulab.egg-info/
 *.pyc
 annotator/media/
 log.*
+.env.yml

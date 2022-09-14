@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -204,3 +205,9 @@ EMAIL_HOST = 'smtp.dreamhost.com'
 EMAIL_HOST_USER = 'no-reply@cmulab.dev'
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
 EMAIL_PORT = 465
+
+with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
+    env_vars = yaml.safe_load(fin)
+    for key in env_vars:
+        # manually specified env vars have priority over config file
+        os.environ[key] = os.environ.get(key, env_vars[key])
