@@ -1,6 +1,8 @@
 #!/bin/bash
 
 
+eval $(conda shell.bash hook)
+conda activate cmulab
 source activate cmulab
 set -x
 
