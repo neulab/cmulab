@@ -199,15 +199,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
+    env_vars = yaml.safe_load(fin)
+    for key in env_vars:
+        # manually specified env vars have priority over config file
+        os.environ[key] = os.environ.get(key, env_vars[key])
+
 # EMAIL_USE_TLS = True # for gmail
 EMAIL_USE_SSL = True
 EMAIL_HOST = 'smtp.dreamhost.com'
 EMAIL_HOST_USER = 'no-reply@cmulab.dev'
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
 EMAIL_PORT = 465
-
-with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
-    env_vars = yaml.safe_load(fin)
-    for key in env_vars:
-        # manually specified env vars have priority over config file
-        os.environ[key] = os.environ.get(key, env_vars[key])
