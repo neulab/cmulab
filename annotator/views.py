@@ -701,20 +701,30 @@ def test_single_source_ocr(request):
     test_data = request.FILES['testData']
     test_filename = fs.save(test_data.name, test_data)
     test_filepath = fs.path(test_filename)
-    args = [test_filepath, model_dir, tmp_dir, logfile]
-    job = django_rq.enqueue(test_single_source_ocr_job, args, request.user, job_id, email, job_id=job_id, result_ttl=-1)
+    params = {
+        "test_file": test_filepath,
+        "model_dir": model_dir,
+        "output_folder": tmp_dir,
+        "log_file": logfile
+    }
+    job = django_rq.enqueue(test_single_source_ocr_job, params, request.user, job_id, email, job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
 
-def test_single_source_ocr_job(args, user, job_id, email):
-    logfile = args[-1]
+def test_single_source_ocr_job(params, user, job_id, email):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
+    args = [params["test_file"], params["model_dir"], params["output_folder"], params["log_file"]]
     print(' '.join([run_script] + args))
     rc = subprocess.call([run_script] + args)
     subject = job_id + ' has completed'
     message = 'Log file attached below.'
-    send_job_completion_email(email, subject, message, logfile)
+    zipfile = os.path.join(params["output_folder"], "output.zip")
+    with ZipFile(zipfile, 'w') as fzip:
+        for txt_file in glob.glob(os.path.join(params["output_folder"], "outputs", "*")):
+            fzip.write(txt_file, os.path.basename(txt_file))
+        fzip.write(params["log_file"], os.path.basename(params["log_file"]))
+    send_job_completion_email(email, subject, message, zipfile)
 
 
 @api_view(['POST'])
@@ -736,8 +746,14 @@ def train_single_source_ocr(request):
     unlabeled_data = request.FILES['unlabeledData']
     unlabeled_filename = fs.save(unlabeled_data.name, unlabeled_data)
     unlabeled_filepath = fs.path(unlabeled_filename)
-    args = [src_filepath, tgt_filepath, unlabeled_filepath, tmp_dir, logfile]
-    job = django_rq.enqueue(train_single_source_ocr_job, args, request.user, job_id, email, job_id=job_id, result_ttl=-1)
+    params = {
+        "src_filepath": src_filepath,
+        "tgt_filepath": tgt_filepath,
+        "unlabeled_filepath": unlabeled_filepath,
+        "working_dir": tmp_dir,
+        "log_file": logfile
+    }
+    job = django_rq.enqueue(train_single_source_ocr_job, params, request.user, job_id, email, job_id=job_id, result_ttl=-1)
     logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
     return Response([{
         "log_file": logfile_url,
@@ -745,14 +761,14 @@ def train_single_source_ocr(request):
     }], status=status.HTTP_202_ACCEPTED)
 
 
-def train_single_source_ocr_job(args, user, job_id, email):
-    logfile = args[-1]
+def train_single_source_ocr_job(params, user, job_id, email):
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
+    args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
     print(' '.join([run_script] + args))
     rc = subprocess.call([run_script] + args)
     subject = job_id + ' has completed'
     message = 'Log file attached below.'
-    send_job_completion_email(email, subject, message, logfile)
+    send_job_completion_email(email, subject, message, params["log_file"])
 
 
 @login_required(login_url='')
