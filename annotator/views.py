@@ -79,10 +79,8 @@ ocr_client = vision.ImageAnnotatorClient()
 ocr_api_usage = {}
 
 OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
-TEST_SINGLE_SOURCE_SCRIPT = os.environ.get("TEST_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/test_single-source.sh")
-TRAIN_SINGLE_SOURCE_SCRIPT = os.environ.get("TRAIN_SINGLE_SOURCE_SCRIPT", "/ocr-post-correction/train_single-source.sh")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
-IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 20))
+IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
 MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
@@ -578,6 +576,8 @@ def ocr_post_correction(request):
         return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
         params = json.loads(request.POST.get("params", "{}"))
+        email = request.POST.get("email", "")
+        params["email"] = params.get("email", email)
         fileids = json.loads(request.POST.get("fileids", "{}"))
         fs = FileSystemStorage()
         images = []

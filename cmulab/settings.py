@@ -203,7 +203,7 @@ with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
     env_vars = yaml.safe_load(fin)
     for key in env_vars:
         # manually specified env vars have priority over config file
-        os.environ[key] = os.environ.get(key, env_vars[key])
+        os.environ[key] = str(os.environ.get(key, env_vars[key]))
 
 # EMAIL_USE_TLS = True # for gmail
 EMAIL_USE_SSL = True
