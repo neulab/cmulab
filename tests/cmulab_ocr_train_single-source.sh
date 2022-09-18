@@ -57,7 +57,7 @@ set -x
 	--unannotated_src1 $unannotated_src  \
 	--annotated_src1 ${annotated_dir}/src1/  \
 	--annotated_tgt ${annotated_dir}/tgt/  \
-	--output_folder $(working_dir)/postcorrection/
+	--output_folder ${working_dir}/postcorrection/
 
 
     # Set pretraining, training and development set files
@@ -82,7 +82,7 @@ set -x
     python -u postcorrection/create_vocab.py \
     --src1_files $train_src $dev_src \
     --tgt_files $train_tgt $dev_tgt \
-    --output_folder $expt_folder/vocab
+    --output_folder $expt_folder/vocab/
 
 
     # Pretrain the model (add --dynet-gpu for using GPU)
@@ -94,8 +94,8 @@ set -x
     --pretrain_tgt $pretrain_tgt \
     $params \
     --single \
-    --vocab_folder $expt_folder/vocab \
-    --output_folder $expt_folder \
+    --vocab_folder $expt_folder/vocab/ \
+    --output_folder $expt_folder/ \
     --model_name $pretrained_model_name \
     --pretrain_only
 
@@ -110,8 +110,8 @@ set -x
     --dev_tgt $dev_tgt \
     $params \
     --single \
-    --vocab_folder $expt_folder/vocab \
-    --output_folder $expt_folder \
+    --vocab_folder $expt_folder/vocab/ \
+    --output_folder $expt_folder/ \
     --load_model $expt_folder"/pretrain_models/"$pretrained_model_name \
     --model_name $trained_model_name \
     --train_only

@@ -31,6 +31,7 @@ set -x
 
 {
 
+    mkdir -p $output_folder/outputs/
     # Load the trained model and get the predicted output on the test set (add --dynet-gpu for using GPU)
     python postcorrection/multisource_wrapper.py \
     --dynet-mem $dynet_mem \
@@ -38,8 +39,8 @@ set -x
     --test_src1 $test_src \
     $params \
     --single \
-    --vocab_folder $expt_folder/vocab \
-    --output_folder $output_folder \
+    --vocab_folder $expt_folder/vocab/ \
+    --output_folder $output_folder/ \
     --load_model $expt_folder"/models/"$trained_model_name \
     --testing
 
