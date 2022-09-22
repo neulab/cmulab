@@ -624,7 +624,7 @@ def send_job_completion_email(email, subject, message, attachment):
     if re.match(email_format, email, re.IGNORECASE):
         sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
         # send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
-        mail = EmailMessage(subject, message, sender, [email])
+        mail = EmailMessage(subject, message, f'"CMULAB" <{sender}>', [email])
         if attachment:
             mail.attach_file(attachment)
         mail.send()
