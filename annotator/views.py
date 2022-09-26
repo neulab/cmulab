@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect
 from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.views.static import serve
+from django.middleware.csrf import get_token
+
 
 
 from zipfile import ZipFile
@@ -13,7 +15,7 @@ from zipfile import ZipFile
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
 
 from rest_framework import generics
 from rest_framework import status
@@ -779,10 +781,21 @@ def train_single_source_ocr_job(params, user, job_id, email, debug):
     send_job_completion_email(email, subject, message, params["log_file"])
 
 
-@login_required(login_url='')
+
+# @login_required(login_url='')
+@api_view(['GET'])
+@csrf_exempt
 def get_auth_token(request):
+    if not request.user.is_authenticated:
+        return HttpResponse("<a href='/accounts/login/?next=/annotator/get_auth_token/'>Please login.</a>", status=status.HTTP_401_UNAUTHORIZED)
     token, created = Token.objects.get_or_create(user=request.user)
-    return HttpResponse(token.key)
+    response_data = {
+        "email": request.user.email,
+        "auth_token": token.key,
+        "csrf_token": get_token(request),
+    }
+    #return HttpResponse(json.dumps(response_data), status=status.HTTP_202_ACCEPTED)
+    return Response(response_data)
 
 
 def download_file(request, filename):
