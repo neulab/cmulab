@@ -26,6 +26,8 @@ trained_model_name="my_trained_model"
 mkdir -p $(dirname $log_file)
 
 
+exit_code=1
+
 eval $(conda shell.bash hook)
 conda activate ocr-post-correction
 #source activate ocr-post-correction
@@ -116,6 +118,14 @@ set -x
     --model_name $trained_model_name \
     --train_only
 
-    echo "Job completed!"
+    if [ -s ${expt_folder}/models/${trained_model_name} ]; then
+        echo "Traning completed successfully!"
+        exit_code=0
+    else
+        echo "Traning failed!"
+        exit_code=1
+    fi
 
 } 2>&1 | tee $log_file
+
+exit $exit_code

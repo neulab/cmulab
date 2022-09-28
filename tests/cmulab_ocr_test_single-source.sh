@@ -23,6 +23,7 @@ trained_model_name="my_trained_model"
 
 # ------------------------------END: Required experimental settings------------------------------
 
+exit_code=1
 
 eval $(conda shell.bash hook)
 conda activate ocr-post-correction
@@ -44,6 +45,14 @@ set -x
     --load_model $expt_folder"/models/"$trained_model_name \
     --testing
 
-    echo "Job completed!"
+    if [ "$(ls -A ${output_folder}/outputs/)" ]; then
+        echo "Job completed successfully!"
+        exit_code=0
+    else
+        echo "Job failed!"
+        exit_code=1
+    fi
 
 } 2>&1 | tee $log_file
+
+exit $exit_code
