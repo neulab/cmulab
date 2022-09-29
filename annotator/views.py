@@ -555,7 +555,11 @@ def list_home(request):
     # Load documents for the list page
     documents = Document.objects.filter(owner=request.user)
     ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
-
+    for ml_model in ml_models:
+        if ml_model.modelTrainingSpec == "allosaurus":
+            ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
+        else:
+            ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
 
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
@@ -770,12 +774,17 @@ def train_single_source_ocr(request):
 
 
 def train_single_source_ocr_job(params, user, job_id, email, debug):
+    model1 = Mlmodel(name=job_id, modelTrainingSpec="ocr-post-correction", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
+    model1.owner = user
+    model1.save()
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     if debug:
         run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_train_single-source.sh")
     args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
     print(' '.join([run_script] + args))
     rc = subprocess.call([run_script] + args)
+    model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
+    model1.save()
     subject = job_id + ' has completed'
     message = 'Log file attached below.'
     send_job_completion_email(email, subject, message, params["log_file"])
