@@ -771,9 +771,13 @@ def train_single_source_ocr(request):
     tgt_data = request.FILES['tgtData']
     tgt_filename = fs.save(tgt_data.name, tgt_data)
     tgt_filepath = fs.path(tgt_filename)
-    unlabeled_data = request.FILES['unlabeledData']
-    unlabeled_filename = fs.save(unlabeled_data.name, unlabeled_data)
-    unlabeled_filepath = fs.path(unlabeled_filename)
+    unlabeled_data = request.FILES.get('unlabeledData')
+    if unlabeled_data:
+        unlabeled_filename = fs.save(unlabeled_data.name, unlabeled_data)
+        unlabeled_filepath = fs.path(unlabeled_filename)
+    else:
+        # TODO: update training script to skip pre-training if unlabeled data is not provided
+        unlabeled_filepath = src_filepath
     params = {
         "src_filepath": src_filepath,
         "tgt_filepath": tgt_filepath,
