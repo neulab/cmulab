@@ -685,8 +685,16 @@ def google_vision_ocr_job(images, request_user, params, logfile, job_id):
         print(zipfile)
         flog.write(f"Job {job_id} completed\n")
         flog.write(f"Sending email to {email}...\n")
-        subject = job_id + ' has completed'
-        message = 'Log file attached below.'
+        subject = 'OCR transcription complete'
+        message = '\n'.join([
+            f"Hi {username},",
+            "",
+            f"OCR transcription (job ID {job_id}) has completed.",
+            "Output files are attached below.",
+            "",
+            "Thanks,",
+            "CMULAB"
+        ])
         send_job_completion_email(email, subject, message, zipfile)
         flog.write(f"Email sent to {email}.\n")
 
@@ -727,8 +735,16 @@ def test_single_source_ocr_job(params, user, job_id, email, debug):
     args = [params["test_file"], params["model_dir"], params["output_folder"], params["log_file"]]
     print(' '.join([run_script] + args))
     rc = subprocess.call([run_script] + args)
-    subject = job_id + ' has completed'
-    message = 'Log file attached below.'
+    subject = 'OCR post-correction task complete'
+    message = '\n'.join([
+        f"Hi {user.get_username()},",
+        "",
+        f"OCR post-correction task with ID {job_id} has completed.",
+        "Output files are attached below.",
+        "",
+        "Thanks,",
+        "CMULAB"
+    ])
     zipfile = os.path.join(params["output_folder"], "output.zip")
     with ZipFile(zipfile, 'w') as fzip:
         for txt_file in glob.glob(os.path.join(params["output_folder"], "outputs", "*")):
@@ -785,8 +801,16 @@ def train_single_source_ocr_job(params, user, job_id, email, debug):
     rc = subprocess.call([run_script] + args)
     model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
     model1.save()
-    subject = job_id + ' has completed'
-    message = 'Log file attached below.'
+    subject = 'OCR post-correction model training completed'
+    message = '\n'.join([
+        f"Hi {user.get_username()},",
+        "",
+        f"OCR post-correction model with ID {job_id} has completed training.",
+        "Log file is attached below.",
+        "",
+        "Thanks,",
+        "CMULAB"
+    ])
     send_job_completion_email(email, subject, message, params["log_file"])
 
 
