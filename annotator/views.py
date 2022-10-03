@@ -600,6 +600,12 @@ def ocr_post_correction(request):
                 # TODO: cleanup tmpdir?
                 tmp_dir = tempfile.mkdtemp(prefix="pdf2image_")
                 images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_file=uploaded_file.name + '_', output_folder=tmp_dir)
+            elif uploaded_file.name.endswith('.zip'):
+                # TODO: cleanup tmpdir?
+                tmp_dir = tempfile.mkdtemp(prefix="zipped_images_")
+                print(f"Unzipping images from {filepath} to {tmp_dir}")
+                shutil.unpack_archive(filepath, tmp_dir)
+                images += glob.glob(os.path.join(tmp_dir, '*'))
             else:
                 images.append(filepath)
         # TODO: retrieve images/transcripts from db
