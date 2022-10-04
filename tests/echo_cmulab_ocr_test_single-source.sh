@@ -40,7 +40,7 @@ set -x
     # Load the trained model and get the predicted output on the test set (add --dynet-gpu for using GPU)
     shopt -s nullglob
     for test_src in $output_folder/inputs/*; do
-        python postcorrection/multisource_wrapper.py \
+        echo python postcorrection/multisource_wrapper.py \
         --dynet-mem $dynet_mem \
         --dynet-autobatch 1 \
         --test_src1 $test_src \
@@ -50,6 +50,7 @@ set -x
         --output_folder $output_folder/ \
         --load_model $expt_folder"/models/"$trained_model_name \
         --testing
+        echo "Test output" > $output_folder/outputs/$(basename $test_src).output
     done
 
     if [ "$(ls -A ${output_folder}/outputs/)" ]; then
