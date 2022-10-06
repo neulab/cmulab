@@ -11,6 +11,8 @@ from django.middleware.csrf import get_token
 
 
 from zipfile import ZipFile
+from itertools import chain
+
 
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -555,14 +557,16 @@ def list_home(request):
     # Load documents for the list page
     documents = Document.objects.filter(owner=request.user)
     ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
-    for ml_model in ml_models:
+    # TODO: add a new flag to Mlmodel to desginate public models
+    public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
+    for ml_model in chain(ml_models, public_ml_models):
         if ml_model.modelTrainingSpec == "allosaurus":
             ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
         else:
             ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
 
     # Render list page with the documents and the form
-    return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
+    return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'public_ml_models': public_ml_models,  'form': form})
 
 def ocr_frontend(request):
     # TODO: fix this, no longer works (ocr_frontend.html used to be symlink to index.html)
