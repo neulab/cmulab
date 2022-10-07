@@ -555,7 +555,7 @@ def list_home(request):
         form = DocumentForm() # A empty, unbound form
 
     # Load documents for the list page
-    documents = Document.objects.filter(owner=request.user)
+    documents = Document.objects.filter(owner=request.user).order_by('-id')[:10]
     ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
     # TODO: add a new flag to Mlmodel to desginate public models
     public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
