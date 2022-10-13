@@ -82,7 +82,15 @@
                         <td><small>{{ ml_model.modelTrainingSpec }}</small></td>
                         <td><small>{{ ml_model.created }}</small></td>
                         <!-- <td><small><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt"><small>{{ ml_model.status }}</small></a></td> -->
-                        <td><small><a target="_blank" href={{ml_model.log_url}}><small>{{ ml_model.status }}</small></a></td>
+                        <td>
+                            {% if ml_model.log_url %}
+                            <a target="_blank" href={{ml_model.log_url}}>
+                               <small>{{ ml_model.status }}</small>
+                            </a>
+                            {% else %}
+                               <small>{{ ml_model.status }}</small>
+                            {% endif %}
+                        </td>
                         <td>
                             <button type="button" class="btn btn-danger delete-button"
                                     data-toggle="modal" data-target="#deleteModalCenter"
@@ -142,7 +150,15 @@
                         <td><small>{{ public_ml_model.name }}</small></td>
                         <td><small>{{ public_ml_model.modelTrainingSpec }}</small></td>
                         <td><small>{{ public_ml_model.created }}</small></td>
-                        <td><small><a target="_blank" href={{public_ml_model.log_url}}><small>{{ public_ml_model.status }}</small></a></td>
+                        <td>
+                            {% if public_ml_model.log_url %}
+                            <a target="_blank" href={{public_ml_model.log_url}}>
+                               <small>{{ public_ml_model.status }}</small>
+                            </a>
+                            {% else %}
+                               <small>{{ public_ml_model.status }}</small>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </table>

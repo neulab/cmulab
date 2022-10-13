@@ -561,9 +561,15 @@ def list_home(request):
     public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
     for ml_model in chain(ml_models, public_ml_models):
         if ml_model.modelTrainingSpec == "allosaurus":
-            ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
+            if os.path.exists(os.path.join(MEDIA_ROOT, "allosaurus_finetune_" + ml_model.name + "_log.txt")):
+                ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
+            else:
+                ml_model.log_url = None
         else:
-            ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
+            if os.path.exists(os.path.join(MEDIA_ROOT, ml_model.name + "_log.txt")):
+                ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
+            else:
+                ml_model.log_url = None
 
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'public_ml_models': public_ml_models,  'form': form})
