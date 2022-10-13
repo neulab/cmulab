@@ -8,15 +8,21 @@
 
     <body>
         {% load crispy_forms_tags %}
-        <div style="width: 637px; margin: auto;">
+        <!-- <div style="width: 637px; margin: auto;"> -->
+        <div style="width: 80%; margin: auto;">
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
         <p style="text-align: right">You are logged in as <b>{{ user.username }}</b>. <a href="/annotator/logout">Logout</a></p>
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
+                <a class="nav-link active" id="about-tab"  href="#about" role="tab" aria-controls="about" aria-selected="false">About</a>
+            </li>
+            <!-- 
+            <li class="nav-item">
                 <a class="nav-link active" id="upload-tab"  href="#upload" role="tab" aria-controls="upload" aria-selected="true">Upload</a>
             </li>
+            -->
             <li class="nav-item">
                 <a class="nav-link" id="models-tab"  href="#models" role="tab" aria-controls="models" aria-selected="false">Your models</a>
             </li>
@@ -26,18 +32,19 @@
             <li class="nav-item">
                 <a class="nav-link" id="tools-tab"  href="#tools" role="tab" aria-controls="tools" aria-selected="false">Tools</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" id="contact-tab"  href="#contact" role="tab" aria-controls="contact" aria-selected="false">About</a>
-            </li>
         </ul>
-				<div class="tab-content" id="myTabContent">
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
+                <br>
+                Check us out on <a href="https://github.com/neulab/cmulab">Github</a>
+            </div>
 
+            <!-- 
             <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
                 <div class="embed-responsive embed-responsive-16by9">
                     <iframe class="embed-responsive-item" style="width:100%;" src="/static/cmu-irb-online-consent.html"></iframe>
                 </div>
                 <br>
-                <!-- List of uploaded documents -->
                 {% if documents %}
                     <ul>
                         {% for document in documents %}
@@ -48,22 +55,16 @@
                     <p>No documents.</p>
                 {% endif %}
 
-                <!-- Upload form. Note enctype attribute! -->
                 <form action="{% url 'list_home' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <p>{{ form.non_field_errors }}</p>
-
-                    <!--<p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>-->
-
                     <p>
-                        <!--{{ form.docfile.errors }}-->
-                        <!--{{ form.docfile }}-->
                         {{ form|crispy }}
                     </p>
-
                     <p><input class="btn btn-primary" type="submit" value="Upload"/></p>
                 </form>
             </div>
+            -->
 
 						<div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="models-tab">
                 <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
@@ -168,23 +169,11 @@
             </div>
 
             <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
-                
-                <br>
-                <ul>
-                    <li>
-                <small><a target="_blank" href="/static/ocr-web-interface/index.html">OCR post-correction interface</a></small>
-                    </li>
-                    <li>
-                <small><a target="_blank" href="https://github.com/zaidsheikh/allosaurus-elan">Universal phone recognizer for ELAN</a></small>
-                    </li>
-                </ul>
-                <br>
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" style="width:100%;" src="/static/ocr-web-interface/index.html"></iframe>
+                </div>
             </div>
 
-            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                <br>
-                Check us out on <a href="https://github.com/neulab/cmulab">Github</a>
-            </div>
 
         </div>
 
