@@ -3,6 +3,7 @@
 import datetime
 
 from django.db import models
+from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
@@ -11,6 +12,12 @@ from django.core.files.storage import FileSystemStorage
 import allosaurus
 import traceback
 import shutil
+
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    consent = models.BooleanField(default=False)
 
 class Document(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, default=1, null = True, on_delete=models.CASCADE)

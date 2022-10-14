@@ -40,6 +40,7 @@ urlpatterns = [
     path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
     path('annotator/upload/', views.list_home, name='list_home'),
     path('annotator/home/', views.list_home, name='home'),
+    path('annotator/irb_consent', views.irb_consent, name='irb_consent'),
     path('annotator/models/', views.list_models, name='models'),
     path('annotator/get_auth_token/', views.get_auth_token, name='get_auth_token'),
     path('annotator/check_auth_token/', views.check_auth_token, name='check_auth_token'),

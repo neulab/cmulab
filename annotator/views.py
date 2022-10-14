@@ -38,7 +38,7 @@ from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSe
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 from annotator.BackendModels import MLModels
-from annotator.models import Document, Transcript
+from annotator.models import Document, Transcript, UserProfile
 from annotator.forms import DocumentForm
 
 import django_rq
@@ -538,9 +538,24 @@ def annotate(request, mk, sk):
 def list_models(request):
     return redirect(reverse('home') + '#models')
 
+@login_required(login_url='')
+def irb_consent(request):
+    if not hasattr(request.user, 'userprofile'):
+        request.user.userprofile = UserProfile.objects.create(user=request.user)
+        request.user.save()
+    request.user.userprofile.consent = True
+    request.user.userprofile.save()
+    request.user.save()
+    return HttpResponseRedirect("/")
 
 @login_required(login_url='')
 def list_home(request):
+    if not hasattr(request.user, 'userprofile'):
+        request.user.userprofile = UserProfile.objects.create(user=request.user)
+        request.user.save()
+    print(f"user consent {request.user.userprofile.consent}")
+    if not request.user.userprofile.consent:
+        return HttpResponseRedirect("/static/cmu-irb-online-consent-form.html")
     # Handle file upload
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
