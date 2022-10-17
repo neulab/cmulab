@@ -54,3 +54,4 @@ urlpatterns = [
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
+handler404 = 'annotator.views.view_404'

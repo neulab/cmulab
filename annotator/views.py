@@ -88,6 +88,12 @@ IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
 MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
+def view_404(request, exception=None):
+    # make a redirect to homepage
+    # you can use the name of url or just the plain link
+    return redirect('/') # or redirect('name-of-index-url')
+
+
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
