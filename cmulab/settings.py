@@ -22,7 +22,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '4%h_3jhjs(08mk53ix2yp4fghd)@y@j#p)$l$^!um0=7mizn5+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Note: MEDIA_ROOT files are served publicly when debug is True
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -106,8 +107,8 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "[CMULAB] "
-# ACCOUNT_EMAIL_VERIFICATION = "optional"
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+# ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
