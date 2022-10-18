@@ -102,7 +102,12 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # allauth
-ACCOUNT_EMAIL_VERIFICATION = "none"
+# ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[CMULAB] "
+# ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -208,5 +213,6 @@ with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
 EMAIL_USE_SSL = True
 EMAIL_HOST = 'smtp.dreamhost.com'
 EMAIL_HOST_USER = 'no-reply@cmulab.dev'
+DEFAULT_FROM_EMAIL = 'no-reply@cmulab.dev'
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
 EMAIL_PORT = 465
