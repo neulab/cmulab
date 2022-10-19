@@ -649,7 +649,7 @@ def ocr_post_correction(request):
             job = django_rq.enqueue(google_vision_ocr_job, images, request.user, params, logfile, job_id, job_id=job_id, result_ttl=-1)
             return Response([{
                 "job_id": job_id,
-                "status_url": request.build_absolute_uri("/annotator/media/" + os.path.basename(logfile)),
+                "status_url": "/annotator/media/" + os.path.basename(logfile),
                 "status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
         text = {}
         for filepath in images:
@@ -761,7 +761,7 @@ def test_single_source_ocr(request):
         "log_file": logfile
     }
     job = django_rq.enqueue(test_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
-    logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
+    logfile_url = "/annotator/media/" + os.path.basename(logfile)
     return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
 
 
@@ -823,7 +823,7 @@ def train_single_source_ocr(request):
         "log_file": logfile
     }
     job = django_rq.enqueue(train_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
-    logfile_url = request.build_absolute_uri("/annotator/media") + '/' + os.path.basename(logfile)
+    logfile_url = "/annotator/media/" + os.path.basename(logfile)
     return Response([{
         "log_file": logfile_url,
         "model_id": job_id,
