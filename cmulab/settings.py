@@ -217,3 +217,6 @@ EMAIL_HOST_USER = 'no-reply@cmulab.dev'
 DEFAULT_FROM_EMAIL = 'no-reply@cmulab.dev'
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
 EMAIL_PORT = 465
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
