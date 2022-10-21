@@ -20,4 +20,8 @@ export EMAIL_HOST_PASSWORD
 nohup python -u manage.py runserver 0.0.0.0:8088 --verbosity 2 &> log.runserver_8088 &
 nohup redis-server redis.conf &> log.redis-server &
 sleep 1
-nohup python -u manage.py rqworker default &> log.rqworker_default &
+
+NUM_JOBS=3
+for n in $(seq 1 $NUM_JOBS); do
+    nohup python -u manage.py rqworker default &> log.rqworker_default_${n} &
+done
