@@ -8,30 +8,67 @@
 
     <body>
         {% load crispy_forms_tags %}
-        <div style="width: 637px; margin: auto;">
+        <!-- <div style="width: 637px; margin: auto;"> -->
+        <div style="width: 80%; margin: auto;">
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
         <p style="text-align: right">You are logged in as <b>{{ user.username }}</b>. <a href="/annotator/logout">Logout</a></p>
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
+                <a class="nav-link active" id="about-tab"  href="#about" role="tab" aria-controls="about" aria-selected="false">About</a>
+            </li>
+            <!-- 
+            <li class="nav-item">
                 <a class="nav-link active" id="upload-tab"  href="#upload" role="tab" aria-controls="upload" aria-selected="true">Upload</a>
             </li>
+            -->
             <li class="nav-item">
-                <a class="nav-link" id="models-tab"  href="#models" role="tab" aria-controls="models" aria-selected="false">Models</a>
+                <a class="nav-link" id="models-tab"  href="#models" role="tab" aria-controls="models" aria-selected="false">Your models</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="contact-tab"  href="#contact" role="tab" aria-controls="contact" aria-selected="false">About</a>
+                <a class="nav-link" id="public-models-tab"  href="#public_models" role="tab" aria-controls="public_models" aria-selected="false">Public models</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tools-tab"  href="#tools" role="tab" aria-controls="tools" aria-selected="false">Tools</a>
             </li>
         </ul>
-				<div class="tab-content" id="myTabContent">
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
+                <br>
+                <!-- Check us out on <a href="https://github.com/neulab/cmulab">Github</a> -->
+                <div id="documentation" style="width:90%; margin:auto;">
 
+<p>&nbsp;</p>
+<h2><img alt="" src="https://shrutirij.github.io/ocr-el/assets/postcorrection.png" style="float:right; height:400px; width:600px" />OCR post-correction</h2>
+
+<p>OCR post-correction tool allows you to iteratively train and improve a model that fixes the recognition errors made by a first pass OCR system. In the first step, you upload a set of images (scanned documents) and get back the transcribed output from the Google Vision cloud service. You can then manually correct a few of these documents to create a training set and upload them to the CMULAB server in the second step. Once training finishes, you can use the new model to transcribe more images. Steps 2 and 3 can be repeated multiple times to iteratively improve the model. You can read more about our research&nbsp;<a href="https://shrutirij.github.io/ocr-el/">here</a>.</p>
+
+
+
+<h1>&nbsp;</h1>
+<h1>&nbsp;</h1>
+
+<h1>&nbsp;</h1>
+
+<h2><img alt="" src="https://user-images.githubusercontent.com/2358298/164206810-e2d973ab-25df-4490-853e-35d3db49afd5.png" style="float:right; height:649px; width:600px" />Universal phone recognizer for ELAN</h2>
+
+<p>Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization. You can download and try it out from <a href="https://github.com/neulab/cmulab_elan_extension">here</a>.</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+                </div>
+
+            </div>
+
+            <!-- 
             <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
                 <div class="embed-responsive embed-responsive-16by9">
                     <iframe class="embed-responsive-item" style="width:100%;" src="/static/cmu-irb-online-consent.html"></iframe>
                 </div>
                 <br>
-                <!-- List of uploaded documents -->
                 {% if documents %}
                     <ul>
                         {% for document in documents %}
@@ -42,22 +79,16 @@
                     <p>No documents.</p>
                 {% endif %}
 
-                <!-- Upload form. Note enctype attribute! -->
                 <form action="{% url 'list_home' %}" method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <p>{{ form.non_field_errors }}</p>
-
-                    <!--<p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>-->
-
                     <p>
-                        <!--{{ form.docfile.errors }}-->
-                        <!--{{ form.docfile }}-->
                         {{ form|crispy }}
                     </p>
-
                     <p><input class="btn btn-primary" type="submit" value="Upload"/></p>
                 </form>
             </div>
+            -->
 
 						<div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="models-tab">
                 <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
@@ -65,20 +96,39 @@
                 <table class="table">
                     <tr>
                         <td>Model ID</td>
-                        <td>Date created</td>
+                        <td>Model</td>
+                        <td>Timestamp</td>
                         <td>Status</td>
-                        <td>Delete</td>
+                        <td></td>
                     </tr>
                     {% for ml_model in ml_models %}
                     <tr>
-                        <td>{{ ml_model.name }}</td>
-                        <td>{{ ml_model.created }}</td>
-                        <td><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt">{{ ml_model.status }}</a></td>
+                        <td><small>{{ ml_model.name }}</small></td>
+                        <td><small>{{ ml_model.modelTrainingSpec }}</small></td>
+                        <td><small>{{ ml_model.created }}</small></td>
+                        <!-- <td><small><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt"><small>{{ ml_model.status }}</small></a></td> -->
+                        <td>
+                            {% if ml_model.log_url %}
+                            <a target="_blank" href={{ml_model.log_url}}>
+                               <small>{{ ml_model.status }}</small>
+                            </a>
+                            {% else %}
+                               <small>{{ ml_model.status }}</small>
+                            {% endif %}
+                        </td>
                         <td>
                             <button type="button" class="btn btn-danger delete-button"
                                     data-toggle="modal" data-target="#deleteModalCenter"
                                     data-id="{{ ml_model.id }}"
-                                    data-name="{{ ml_model.name }}">Delete</button>
+                                    data-name="{{ ml_model.name }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash"
+                                        viewBox="0 0 16 16">
+                                        <path
+                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                        <path fill-rule="evenodd"
+                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                    </svg>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -103,14 +153,51 @@
 		    </div>
 		</div>
                 {% else %}
-                    <p>No ml_models.</p>
+                    <br><p>No models found!</p>
                 {% endif %}
             </div>
 
-            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-                <br>
-                Check us out on <a href="https://github.com/neulab/cmulab">Github</a>
+
+
+
+						<div class="tab-pane fade" id="public_models" role="tabpanel" aria-labelledby="public-models-tab">
+                <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
+                {% if public_ml_models %}
+                <table class="table">
+                    <tr>
+                        <td>Model ID</td>
+                        <td>Model</td>
+                        <td>Timestamp</td>
+                        <td>Status</td>
+                    </tr>
+                    {% for public_ml_model in public_ml_models %}
+                    <tr>
+                        <td><small>{{ public_ml_model.name }}</small></td>
+                        <td><small>{{ public_ml_model.modelTrainingSpec }}</small></td>
+                        <td><small>{{ public_ml_model.created }}</small></td>
+                        <td>
+                            {% if public_ml_model.log_url %}
+                            <a target="_blank" href={{public_ml_model.log_url}}>
+                               <small>{{ public_ml_model.status }}</small>
+                            </a>
+                            {% else %}
+                               <small>{{ public_ml_model.status }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                    <br><p>No publicly available models found!</p>
+                {% endif %}
             </div>
+
+            <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" style="width:100%;" src="/static/ocr-web-interface/index.html"></iframe>
+                </div>
+            </div>
+
 
         </div>
 

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '4%h_3jhjs(08mk53ix2yp4fghd)@y@j#p)$l$^!um0=7mizn5+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Note: MEDIA_ROOT files are served publicly when debug is True
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -55,7 +57,7 @@ RQ_QUEUES = {
         'PORT': 8379,
         'DB': 0,
         'PASSWORD': 'asdf234KHk12ala01#1sasHH43',
-        'DEFAULT_TIMEOUT': 360,
+        'DEFAULT_TIMEOUT': 3600,
     }
 }
 
@@ -101,7 +103,12 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # allauth
-ACCOUNT_EMAIL_VERIFICATION = "none"
+# ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[CMULAB] "
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+# ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -184,7 +191,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',  # <-- And here
         'rest_framework.authentication.SessionAuthentication',
-
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -197,3 +203,20 @@ MEDIA_URL = '/annotator/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
+    env_vars = yaml.safe_load(fin)
+    for key in env_vars:
+        # manually specified env vars have priority over config file
+        os.environ[key] = str(os.environ.get(key, env_vars[key]))
+
+# EMAIL_USE_TLS = True # for gmail
+EMAIL_USE_SSL = True
+EMAIL_HOST = 'smtp.dreamhost.com'
+EMAIL_HOST_USER = 'no-reply@cmulab.dev'
+DEFAULT_FROM_EMAIL = 'no-reply@cmulab.dev'
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_PORT = 465
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

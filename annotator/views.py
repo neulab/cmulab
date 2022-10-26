@@ -1,11 +1,23 @@
 import os
+import re
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
+from django.core.mail import EmailMessage, send_mail
+from django.conf import settings
+from django.views.static import serve
+from django.middleware.csrf import get_token
+
+
+
+from zipfile import ZipFile
+from itertools import chain
+
+
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse, Http404, HttpResponseRedirect, HttpResponseForbidden
 
 from rest_framework import generics
 from rest_framework import status
@@ -26,7 +38,7 @@ from annotator.serializers import MlmodelSerializer, CorpusSerializer, SegmentSe
 from annotator.serializers import AnnotationSerializer, AudioAnnotationSerializer, TextAnnotationSerializer, SpanTextAnnotationSerializer
 
 from annotator.BackendModels import MLModels
-from annotator.models import Document
+from annotator.models import Document, Transcript, UserProfile
 from annotator.forms import DocumentForm
 
 import django_rq
@@ -69,6 +81,17 @@ for plugin in entry_points(group='cmulab.plugins'):
 
 ocr_client = vision.ImageAnnotatorClient()
 ocr_api_usage = {}
+
+OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
+OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
+IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
+MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
+
+
+def view_404(request, exception=None):
+    # make a redirect to homepage
+    # you can use the name of url or just the plain link
+    return redirect('/') # or redirect('name-of-index-url')
 
 
 @api_view(['GET'])
@@ -521,9 +544,24 @@ def annotate(request, mk, sk):
 def list_models(request):
     return redirect(reverse('home') + '#models')
 
+@login_required(login_url='')
+def irb_consent(request):
+    if not hasattr(request.user, 'userprofile'):
+        request.user.userprofile = UserProfile.objects.create(user=request.user)
+        request.user.save()
+    request.user.userprofile.consent = True
+    request.user.userprofile.save()
+    request.user.save()
+    return HttpResponseRedirect("/")
 
 @login_required(login_url='')
 def list_home(request):
+    if not hasattr(request.user, 'userprofile'):
+        request.user.userprofile = UserProfile.objects.create(user=request.user)
+        request.user.save()
+    print(f"user consent {request.user.userprofile.consent}")
+    if not request.user.userprofile.consent:
+        return HttpResponseRedirect("/static/cmu-irb-online-consent-form.html")
     # Handle file upload
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
@@ -538,20 +576,32 @@ def list_home(request):
         form = DocumentForm() # A empty, unbound form
 
     # Load documents for the list page
-    documents = Document.objects.filter(owner=request.user)
+    documents = Document.objects.filter(owner=request.user).order_by('-id')[:10]
     ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
-
+    # TODO: add a new flag to Mlmodel to desginate public models
+    public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
+    for ml_model in chain(ml_models, public_ml_models):
+        if ml_model.modelTrainingSpec == "allosaurus":
+            if os.path.exists(os.path.join(MEDIA_ROOT, "allosaurus_finetune_" + ml_model.name + "_log.txt")):
+                ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
+            else:
+                ml_model.log_url = None
+        else:
+            if os.path.exists(os.path.join(MEDIA_ROOT, ml_model.name + "_log.txt")):
+                ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
+            else:
+                ml_model.log_url = None
 
     # Render list page with the documents and the form
-    return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'form': form})
+    return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'public_ml_models': public_ml_models,  'form': form})
 
 def ocr_frontend(request):
+    # TODO: fix this, no longer works (ocr_frontend.html used to be symlink to index.html)
     return render(request, "ocr_frontend.html", {})
 
 @api_view(['POST'])
 @csrf_exempt
 def ocr_post_correction(request):
-    global ocr_client, ocr_api_usage
     auth_token = request.META.get('HTTP_AUTHORIZATION', '').strip()
     if auth_token:
         try:
@@ -563,46 +613,269 @@ def ocr_post_correction(request):
         return HttpResponse("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
     if request.method == 'POST':
         params = json.loads(request.POST.get("params", "{}"))
+        email = request.POST.get("email", "")
+        params["email"] = params.get("email", email)
+        fileids = json.loads(request.POST.get("fileids", "{}"))
         fs = FileSystemStorage()
-        text = {}
         images = []
         for uploaded_file in request.FILES.getlist('file'):
-            # TODO: save these files (along with transcripts)
-            # newdoc = Document(docfile = request.FILES['docfile'])
-            # newdoc.owner = request.user
-            # newdoc.save()
+            if params.get("store_files", True):
+                # TODO: save these files (along with transcripts)
+                newdoc = Document(docfile = uploaded_file)
+                newdoc.owner = request.user
+                newdoc.save()
             filename = fs.save(uploaded_file.name, uploaded_file)
             filepath = fs.path(filename)
+            fileids[filepath] = fileids.get(uploaded_file.name, os.path.basename(filepath))
             if uploaded_file.name.endswith('.pdf'):
+                # TODO: cleanup tmpdir?
                 tmp_dir = tempfile.mkdtemp(prefix="pdf2image_")
-                images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_folder=tmp_dir)
+                images += convert_from_path(filepath, dpi=400, paths_only=True, fmt='png', output_file=uploaded_file.name + '_', output_folder=tmp_dir)
+            elif uploaded_file.name.endswith('.zip'):
+                # TODO: cleanup tmpdir?
+                tmp_dir = tempfile.mkdtemp(prefix="zipped_images_")
+                print(f"Unzipping images from {filepath} to {tmp_dir}")
+                shutil.unpack_archive(filepath, tmp_dir)
+                images += glob.glob(os.path.join(tmp_dir, '*'))
             else:
                 images.append(filepath)
         # TODO: retrieve images/transcripts from db
         # documents = Document.objects.filter(owner=request.user)
+        if len(images) > IMAGE_SYNCHRONOUS_LIMIT:
+            job_id = '-'.join(["google_vision_ocr", username, datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")])
+            logfilename = job_id + "_log.txt"
+            fs = FileSystemStorage()
+            logfile = fs.path(fs.get_available_name(logfilename))
+            job = django_rq.enqueue(google_vision_ocr_job, images, request.user, params, logfile, job_id, job_id=job_id, result_ttl=-1)
+            return Response([{
+                "job_id": job_id,
+                "status_url": "/annotator/media/" + os.path.basename(logfile),
+                "status": job.get_status()}], status=status.HTTP_202_ACCEPTED)
+        text = {}
         for filepath in images:
-            print(filepath)
-            print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
-            print(ocr_api_usage)
-            # TODO: write a better rate-limiting system
-            if ocr_api_usage.get(username, 0) > 100:
-                return HttpResponseForbidden()
-            ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
-            with io.open(filepath, "rb") as image_file:
-                content = image_file.read()
-                image = vision.Image(content=content)
-                if params.get("debug", False):
-                    response_text = "Sample text"
-                else:
-                    response = ocr_client.document_text_detection(image=image)
-                    response_text = response.full_text_annotation.text
-                text[os.path.basename(image_file.name)] = response_text
+            debug = params.get("debug", False)
+            store_files = params.get("store_files", True)
+            response_text = google_vision_ocr(filepath, request.user, debug, store_files)
+            fileid = fileids.get(filepath, os.path.basename(filepath))
+            text[fileid] = response_text
         return Response(text, status=status.HTTP_202_ACCEPTED)
 
-@login_required(login_url='')
+
+def send_job_completion_email(email, subject, message, attachment):
+    # if '@' in email:
+    email_format = r"(^[a-zA-Z0-9'_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    if re.match(email_format, email, re.IGNORECASE):
+        sender = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+        # send_mail(job_id + ' has completed', 'Log file attached below.', sender, [email])
+        mail = EmailMessage(subject, message, f'"CMULAB" <{sender}>', [email])
+        if attachment:
+            mail.attach_file(attachment)
+        mail.send()
+
+
+def google_vision_ocr(filepath, request_user, debug=False, store_files=True):
+    global ocr_client, ocr_api_usage
+    username = request_user.get_username()
+    # TODO: write a better rate-limiting system
+    print(filepath)
+    print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+    with io.open(filepath, "rb") as image_file:
+        content = image_file.read()
+        image = vision.Image(content=content)
+        if debug:
+            response_text = '\n'.join([
+                "Sample Title",
+                "This is just a line of sample text.",
+                "Set 'debug' param to 0 to get OCR transcripts."
+            ])
+        else:
+            if ocr_api_usage.get(username, 0) > OCR_API_USAGE_LIMIT:
+                return HttpResponseForbidden()
+            ocr_api_usage[username] = ocr_api_usage.get(username, 0) + 1
+            response = ocr_client.document_text_detection(image=image)
+            response_text = response.full_text_annotation.text
+        if store_files:
+            # TODO: store these transcripts in the db
+            newdoc = Transcript(filename = os.path.basename(image_file.name), text = response_text)
+            newdoc.owner = request_user
+            newdoc.save()
+    return response_text
+
+
+def google_vision_ocr_job(images, request_user, params, logfile, job_id):
+    username = request_user.get_username()
+    dev_email = getattr(settings, "EMAIL_HOST_USER", "no-reply@cmulab.dev")
+    email = params.get("email", dev_email)
+    debug = params.get("debug", False)
+    store_files = params.get("store_files", True)
+    with open(logfile, 'w') as flog:
+        for filepath in images:
+            flog.write(f"Processing {filepath}...\n")
+            print(filepath)
+            print(f"{username} OCR API usage: {ocr_api_usage.get(username, 0)}")
+            response_text = google_vision_ocr(filepath, request_user, debug, store_files)
+            Path(filepath + ".txt").write_text(response_text)
+        zipfile = logfile + ".zip"
+        with ZipFile(zipfile, 'w') as fzip:
+            for filepath in images:
+                fzip.write(filepath + ".txt", os.path.basename(filepath) + ".txt")
+        print(zipfile)
+        flog.write(f"Job {job_id} completed\n")
+        flog.write(f"Sending email to {email}...\n")
+        subject = 'OCR transcription complete'
+        message = '\n'.join([
+            f"Hi {username},",
+            "",
+            f"OCR transcription (job ID {job_id}) has completed.",
+            "Output files are attached below.",
+            "",
+            "Thanks,",
+            "CMULAB"
+        ])
+        send_job_completion_email(email, subject, message, zipfile)
+        flog.write(f"Email sent to {email}.\n")
+
+
+@api_view(['POST'])
+@csrf_exempt
+def test_single_source_ocr(request):
+    tmp_dir = tempfile.mkdtemp(prefix="test_single_source_ocr_", dir=MEDIA_ROOT)
+    job_id = os.path.basename(tmp_dir)
+    logfilename = job_id + "_log.txt"
+    fs = FileSystemStorage()
+    logfile = fs.path(fs.get_available_name(logfilename))
+    print(logfile)
+    user_params = json.loads(request.POST.get("params", "{}"))
+    debug = user_params.get("debug", False)
+    email = request.POST.get("email", "")
+    model_id = request.POST["model_id"]
+    print(model_id)
+    model_dir = os.path.join(MEDIA_ROOT, model_id, "expt")
+    test_data = request.FILES['testData']
+    test_filename = fs.save(test_data.name, test_data)
+    test_filepath = fs.path(test_filename)
+    params = {
+        "test_file": test_filepath,
+        "model_dir": model_dir,
+        "output_folder": tmp_dir,
+        "log_file": logfile
+    }
+    job = django_rq.enqueue(test_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
+    logfile_url = "/annotator/media/" + os.path.basename(logfile)
+    return Response(logfile_url, status=status.HTTP_202_ACCEPTED)
+
+
+def test_single_source_ocr_job(params, user, job_id, email, debug):
+    run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_test_single-source.sh")
+    if debug:
+        run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_test_single-source.sh")
+    args = [params["test_file"], params["model_dir"], params["output_folder"], params["log_file"]]
+    print(' '.join([run_script] + args))
+    rc = subprocess.call([run_script] + args)
+    subject = 'OCR post-correction task complete'
+    message = '\n'.join([
+        f"Hi {user.get_username()},",
+        "",
+        f"OCR post-correction task with ID {job_id} has completed.",
+        "Output files are attached below.",
+        "",
+        "Thanks,",
+        "CMULAB"
+    ])
+    zipfile = os.path.join(params["output_folder"], "output.zip")
+    with ZipFile(zipfile, 'w') as fzip:
+        for txt_file in glob.glob(os.path.join(params["output_folder"], "outputs", "*")):
+            fzip.write(txt_file, os.path.basename(txt_file))
+        fzip.write(params["log_file"], os.path.basename(params["log_file"]))
+    send_job_completion_email(email, subject, message, zipfile)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def train_single_source_ocr(request):
+    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
+    job_id = os.path.basename(tmp_dir)
+    logfilename = job_id + "_log.txt"
+    fs = FileSystemStorage()
+    logfile = fs.path(fs.get_available_name(logfilename))
+    print(logfile)
+    user_params = json.loads(request.POST.get("params", "{}"))
+    debug = user_params.get("debug", False)
+    email = request.POST.get("email", "")
+    src_data = request.FILES['srcData']
+    src_filename = fs.save(src_data.name, src_data)
+    src_filepath = fs.path(src_filename)
+    tgt_data = request.FILES['tgtData']
+    tgt_filename = fs.save(tgt_data.name, tgt_data)
+    tgt_filepath = fs.path(tgt_filename)
+    unlabeled_data = request.FILES.get('unlabeledData')
+    if unlabeled_data:
+        unlabeled_filename = fs.save(unlabeled_data.name, unlabeled_data)
+        unlabeled_filepath = fs.path(unlabeled_filename)
+    else:
+        # TODO: update training script to skip pre-training if unlabeled data is not provided
+        unlabeled_filepath = src_filepath
+    params = {
+        "src_filepath": src_filepath,
+        "tgt_filepath": tgt_filepath,
+        "unlabeled_filepath": unlabeled_filepath,
+        "working_dir": tmp_dir,
+        "log_file": logfile
+    }
+    job = django_rq.enqueue(train_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
+    logfile_url = "/annotator/media/" + os.path.basename(logfile)
+    return Response([{
+        "log_file": logfile_url,
+        "model_id": job_id,
+    }], status=status.HTTP_202_ACCEPTED)
+
+
+def train_single_source_ocr_job(params, user, job_id, email, debug):
+    model1 = Mlmodel(name=job_id, modelTrainingSpec="ocr-post-correction", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
+    model1.owner = user
+    model1.save()
+    run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
+    if debug:
+        run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_train_single-source.sh")
+    args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
+    print(' '.join([run_script] + args))
+    rc = subprocess.call([run_script] + args)
+    model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
+    model1.save()
+    subject = 'OCR post-correction model training completed'
+    message = '\n'.join([
+        f"Hi {user.get_username()},",
+        "",
+        f"OCR post-correction model with ID {job_id} has completed training.",
+        "Log file is attached below.",
+        "",
+        "Thanks,",
+        "CMULAB"
+    ])
+    send_job_completion_email(email, subject, message, params["log_file"])
+
+
+
+# @login_required(login_url='')
+@api_view(['GET'])
+@csrf_exempt
 def get_auth_token(request):
+    if not request.user.is_authenticated:
+        return HttpResponse("<a href='/accounts/login/?next=/annotator/get_auth_token/'>Please login.</a>", status=status.HTTP_401_UNAUTHORIZED)
     token, created = Token.objects.get_or_create(user=request.user)
-    return HttpResponse(token.key)
+    response_data = {
+        "email": request.user.email,
+        "auth_token": token.key,
+        "csrf_token": get_token(request),
+    }
+    #return HttpResponse(json.dumps(response_data), status=status.HTTP_202_ACCEPTED)
+    return Response(response_data)
+
+
+def download_file(request, filename):
+    fs = FileSystemStorage()
+    filepath = fs.path(filename)
+    return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
 
 
 def get_allosaurus_models(request):

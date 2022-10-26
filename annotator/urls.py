@@ -40,13 +40,18 @@ urlpatterns = [
     path('users/<int:pk>/', views.UserDetail.as_view(), name='user-detail'),
     path('annotator/upload/', views.list_home, name='list_home'),
     path('annotator/home/', views.list_home, name='home'),
+    path('annotator/irb_consent', views.irb_consent, name='irb_consent'),
     path('annotator/models/', views.list_models, name='models'),
     path('annotator/get_auth_token/', views.get_auth_token, name='get_auth_token'),
     path('annotator/check_auth_token/', views.check_auth_token, name='check_auth_token'),
     path('annotator/get_allosaurus_models/', views.get_allosaurus_models, name='get_allosaurus_models'),
     path('annotator/get_allosaurus_phones/<str:model_name>/<str:lang_id>/', views.get_allosaurus_phones, name='get_allosaurus_phones'),
     path('annotator/ocr-post-correction/', views.ocr_post_correction, name='ocr_post_correction'),
+    path('annotator/test_single_source_ocr/', views.test_single_source_ocr, name='test_single_source_ocr'),
+    path('annotator/train_single_source_ocr/', views.train_single_source_ocr, name='train_single_source_ocr'),
     path('annotator/ocr/', views.ocr_frontend, name='ocr_frontend'),
+    path('annotator/download_file/<str:filename>', views.download_file, name='download_file'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
+handler404 = 'annotator.views.view_404'
