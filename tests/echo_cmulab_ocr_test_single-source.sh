@@ -1,5 +1,8 @@
 #!/bin/bash -i
 
+# disable "Monitor mode" to prevent child processes from running in a separate process group
+set +m
+
 [[ $# -ne 4 ]] && { echo "Usage: $0 test_file.zip model_dir/ output_folder/ log_file"; exit 1; }
 
 test_src_zip=$(readlink -ve $1) || exit 1
@@ -7,7 +10,6 @@ expt_folder=$(readlink -ve $2) || exit 1
 output_folder=$(readlink -ve $3) || exit 1
 log_file=$4
 
-mkdir -p $(dirname $log_file)
 mkdir -p $output_folder
 
 cd $(dirname $0)
@@ -23,14 +25,10 @@ trained_model_name="my_trained_model"
 
 # ------------------------------END: Required experimental settings------------------------------
 
-exit_code=1
-
 eval $(conda shell.bash hook)
 conda activate ocr-post-correction
 source activate ocr-post-correction
 set -x
-
-{
 
     mkdir -p $output_folder/inputs/
     (cd $output_folder/inputs/; unzip -j $test_src_zip)
@@ -55,12 +53,8 @@ set -x
 
     if [ "$(ls -A ${output_folder}/outputs/)" ]; then
         echo "Job completed successfully!"
-        exit_code=0
+        exit 0
     else
         echo "Job failed!"
-        exit_code=1
+        exit 1
     fi
-
-} 2>&1 | tee $log_file
-
-exit $exit_code

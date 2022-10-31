@@ -1,5 +1,8 @@
 #!/bin/bash -i
 
+# disable "Monitor mode" to prevent child processes from running in a separate process group
+set +m
+
 [[ $# -ne 5 ]] && { echo "Usage: $0 src1_data.zip tgt_data.zip unlabeled_data.zip working_dir/ log_file"; exit 1; }
 
 src1_data=$(readlink -ve $1) || exit 1
@@ -23,17 +26,10 @@ trained_model_name="my_trained_model"
 # ------------------------------END: Required experimental settings------------------------------
 
 
-mkdir -p $(dirname $log_file)
-
-
-exit_code=1
-
 eval $(conda shell.bash hook)
 conda activate ocr-post-correction
 #source activate ocr-post-correction
 set -x
-
-{
 
     annotated_dir=${working_dir}/text_outputs/corrected/
     mkdir -p ${annotated_dir}/src1 ${annotated_dir}/tgt
@@ -120,12 +116,8 @@ set -x
 
     if [ -s ${expt_folder}/models/${trained_model_name} ]; then
         echo "Traning completed successfully!"
-        exit_code=0
+        exit 0
     else
         echo "Traning failed!"
-        exit_code=1
+        exit 1
     fi
-
-} 2>&1 | tee $log_file
-
-exit $exit_code

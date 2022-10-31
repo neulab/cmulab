@@ -771,7 +771,10 @@ def test_single_source_ocr_job(params, user, job_id, email, debug):
         run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_test_single-source.sh")
     args = [params["test_file"], params["model_dir"], params["output_folder"], params["log_file"]]
     print(' '.join([run_script] + args))
-    rc = subprocess.call([run_script] + args)
+    #rc = subprocess.call([run_script] + args)
+    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
+    with open(params["log_file"], 'w') as logfile:
+        rc = subprocess.call([run_script] + args, stdout=logfile, stderr=subprocess.STDOUT)
     subject = 'OCR post-correction task complete'
     message = '\n'.join([
         f"Hi {user.get_username()},",
@@ -839,7 +842,10 @@ def train_single_source_ocr_job(params, user, job_id, email, debug):
         run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_train_single-source.sh")
     args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
     print(' '.join([run_script] + args))
-    rc = subprocess.call([run_script] + args)
+    #rc = subprocess.call([run_script] + args)
+    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
+    with open(params["log_file"], 'w') as logfile:
+        rc = subprocess.call([run_script] + args, stdout=logfile, stderr=subprocess.STDOUT)
     model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
     model1.save()
     subject = 'OCR post-correction model training completed'
