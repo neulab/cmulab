@@ -42,6 +42,9 @@ from annotator.models import Document, Transcript, UserProfile
 from annotator.forms import DocumentForm
 
 import django_rq
+from rq.command import send_stop_job_command
+from rq.job import Job
+
 from allosaurus.model import get_all_models
 from allosaurus.model import get_model_path
 from allosaurus.lm.inventory import Inventory
@@ -875,6 +878,31 @@ def get_auth_token(request):
         "csrf_token": get_token(request),
     }
     #return HttpResponse(json.dumps(response_data), status=status.HTTP_202_ACCEPTED)
+    return Response(response_data)
+
+@api_view(['GET'])
+def kill_job(request, job_id):
+    queue = django_rq.queues.get_queue('default')
+    # rc = django_rq.get_connection()
+    try:
+        send_stop_job_command(queue.connection, job_id)
+    except:
+        pass
+    try:
+        job = Job.fetch(job_id, connection=queue.connection)
+        try:
+            queue.connection.lrem(queue.key, 0, job.id)
+        except:
+            pass
+        try:
+            job.delete()
+        except:
+            pass
+    except:
+        pass
+    response_data = {
+        "response": "SUCCESS"
+    }
     return Response(response_data)
 
 
