@@ -61,6 +61,7 @@ class Mlmodel(models.Model):
         try:
             fs = FileSystemStorage()
             fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
+            # TODO: check model type first
             shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
         except:
             tb = traceback.format_exc()

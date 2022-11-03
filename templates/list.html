@@ -147,7 +147,7 @@
 			    </div>
 			    <div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-				<button type="button" data-id="-1" id="actual-delete-button" class="btn btn-danger">Delete</button>
+				<button type="button" data-id="-1" data-name="none" id="actual-delete-button" class="btn btn-danger">Delete</button>
 			    </div>
 			</div>
 		    </div>
@@ -221,9 +221,17 @@
                 let model_name = $(this).data('name');
                 $("#deleteModalLongTitle").text("Delete " + model_name + " ?");
                 $("#actual-delete-button").data('id', model_id);
+                $("#actual-delete-button").data('name', model_name);
                 $('#deleteModalCenter').modal('show');
             });
             $("#actual-delete-button").click(function () {
+                $.ajax({
+                    url: '/annotator/kill_job/' + $(this).data('name'),
+                    headers: { "X-CSRFToken": csrf_token },
+                    success: function(result) {
+                        console.log(result);
+                    }
+                });
                 $.ajax({
                         url: '/annotator/model/' + $(this).data('id'),
                         headers: { "X-CSRFToken": csrf_token },
