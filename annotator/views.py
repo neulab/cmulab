@@ -828,7 +828,11 @@ def train_single_source_ocr(request):
         "working_dir": tmp_dir,
         "log_file": logfile
     }
-    job = django_rq.enqueue(train_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
+    model1 = Mlmodel(name=job_id, owner=request.user, modelTrainingSpec="ocr-post-correction", status=Mlmodel.QUEUED, tags=Mlmodel.TRANSCRIPTION)
+    model1.save()
+    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
+    Path(params["log_file"]).write_text(f"OCR post-correction model ID {job_id} training job queued.\n")
+    job = django_rq.enqueue(train_single_source_ocr_job, model1, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
     logfile_url = "/annotator/media/" + os.path.basename(logfile)
     return Response([{
         "log_file": logfile_url,
@@ -836,9 +840,8 @@ def train_single_source_ocr(request):
     }], status=status.HTTP_202_ACCEPTED)
 
 
-def train_single_source_ocr_job(params, user, job_id, email, debug):
-    model1 = Mlmodel(name=job_id, modelTrainingSpec="ocr-post-correction", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
-    model1.owner = user
+def train_single_source_ocr_job(model1, params, user, job_id, email, debug):
+    model1.status = Mlmodel.TRAIN
     model1.save()
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     if debug:
@@ -846,8 +849,7 @@ def train_single_source_ocr_job(params, user, job_id, email, debug):
     args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
     print(' '.join([run_script] + args))
     #rc = subprocess.call([run_script] + args)
-    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
-    with open(params["log_file"], 'w') as logfile:
+    with open(params["log_file"], 'a') as logfile:
         rc = subprocess.call([run_script] + args, stdout=logfile, stderr=subprocess.STDOUT)
     model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
     model1.save()

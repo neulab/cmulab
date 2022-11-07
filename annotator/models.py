@@ -37,10 +37,11 @@ class Mlmodel(models.Model):
     created = models.DateTimeField(auto_now_add=True, help_text='')
     modelTrainingSpec = models.TextField(max_length=10000, help_text='TBD')
 
+    QUEUED = 'queued'
     TRAIN = 'training'
     READY = 'ready'
     UNAVAILABLE = 'unavailable'
-    STATUS_CHOICES = [(TRAIN, 'training'), (READY, 'ready'), (UNAVAILABLE, 'unavailable')]
+    STATUS_CHOICES = [(QUEUED, 'queued'), (TRAIN, 'training'), (READY, 'ready'), (UNAVAILABLE, 'unavailable')]
     status = models.CharField(choices=STATUS_CHOICES, max_length=20, default=UNAVAILABLE, help_text='')
 
     VAD = "vad"
