@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import datetime
 
 from django.db import models
@@ -12,6 +13,8 @@ from django.core.files.storage import FileSystemStorage
 import allosaurus
 import traceback
 import shutil
+
+MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
 
@@ -61,9 +64,13 @@ class Mlmodel(models.Model):
     def delete(self, *args, **kwargs):
         try:
             fs = FileSystemStorage()
-            fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
-            # TODO: check model type first
-            shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+            # TODO: store the log/working dir paths in mlmodel
+            if self.modelTrainingSpec == "allosaurus":
+                fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
+                shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+            elif self.modelTrainingSpec == "ocr-post-correction":
+                print("Deleting " + os.path.join(MEDIA_ROOT, self.name))
+                shutil.rmtree(os.path.join(MEDIA_ROOT, self.name))
         except:
             tb = traceback.format_exc()
             print(tb)

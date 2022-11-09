@@ -584,12 +584,13 @@ def list_home(request):
     # TODO: add a new flag to Mlmodel to desginate public models
     public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
     for ml_model in chain(ml_models, public_ml_models):
+        # TODO: get log_url from mlmodel
         if ml_model.modelTrainingSpec == "allosaurus":
             if os.path.exists(os.path.join(MEDIA_ROOT, "allosaurus_finetune_" + ml_model.name + "_log.txt")):
                 ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
             else:
                 ml_model.log_url = None
-        else:
+        elif ml_model.modelTrainingSpec == "ocr-post-correction":
             if os.path.exists(os.path.join(MEDIA_ROOT, ml_model.name + "_log.txt")):
                 ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
             else:
