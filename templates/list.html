@@ -103,7 +103,13 @@
                     </tr>
                     {% for ml_model in ml_models %}
                     <tr>
-                        <td><small>{{ ml_model.name }}</small></td>
+                        {% if ml_model.status == "queued" %}
+                            <td><small class="text-muted">{{ ml_model.name }}</small></td>
+                        {% elif ml_model.status == "unavailable" %}
+                            <td><s class="text-muted">{{ ml_model.name }}</s></td>
+                        {% else %}
+                            <td><small>{{ ml_model.name }}</small></td>
+                        {% endif %}
                         <td><small>{{ ml_model.modelTrainingSpec }}</small></td>
                         <td><small>{{ ml_model.created }}</small></td>
                         <!-- <td><small><a target="_blank" href="/annotator/media/allosaurus_finetune_{{ ml_model.name }}_log.txt"><small>{{ ml_model.status }}</small></a></td> -->
