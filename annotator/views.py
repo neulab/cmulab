@@ -555,7 +555,8 @@ def irb_consent(request):
     request.user.userprofile.consent = True
     request.user.userprofile.save()
     request.user.save()
-    return HttpResponseRedirect("/")
+    #return HttpResponseRedirect("/")
+    return HttpResponse(status=204)
 
 @login_required(login_url='')
 def list_home(request):
