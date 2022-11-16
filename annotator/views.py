@@ -294,7 +294,7 @@ def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_na
                 with redirect_stderr(f_stdout):
                         with redirect_stdout(f_stdout):
                                 try:
-                                        model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
+                                        model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION, log_file=log_file)
                                         if not owner.is_anonymous:
                                                 model1.owner = owner
                                         model1.save()
@@ -830,7 +830,7 @@ def train_single_source_ocr(request):
         "working_dir": tmp_dir,
         "log_file": logfile
     }
-    model1 = Mlmodel(name=job_id, owner=request.user, modelTrainingSpec="ocr-post-correction", status=Mlmodel.QUEUED, tags=Mlmodel.TRANSCRIPTION)
+    model1 = Mlmodel(name=job_id, owner=request.user, modelTrainingSpec="ocr-post-correction", status=Mlmodel.QUEUED, tags=Mlmodel.TRANSCRIPTION, model_path=tmp_dir, log_file=logfile)
     model1.save()
     Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
     Path(params["log_file"]).write_text(f"OCR post-correction model ID {job_id} training job queued.\n")

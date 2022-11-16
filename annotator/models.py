@@ -39,6 +39,8 @@ class Mlmodel(models.Model):
     name = models.CharField(max_length=200, blank=True, default='', help_text='generic name of the model')
     created = models.DateTimeField(auto_now_add=True, help_text='')
     modelTrainingSpec = models.TextField(max_length=10000, help_text='TBD')
+    model_path = models.CharField(max_length=10000, default='', help_text='model file / dir path')
+    log_file = models.CharField(max_length=10000, default='', help_text='log file path')
 
     QUEUED = 'queued'
     TRAIN = 'training'
