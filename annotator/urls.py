@@ -52,6 +52,7 @@ urlpatterns = [
     path('annotator/ocr/', views.ocr_frontend, name='ocr_frontend'),
     path('annotator/download_file/<str:filename>', views.download_file, name='download_file'),
     path('annotator/kill_job/<str:job_id>', views.kill_job, name='kill_job'),
+    path('annotator/profile', views.user_profile, name='user_profile'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

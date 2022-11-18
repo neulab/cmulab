@@ -12,7 +12,7 @@
         <div style="width: 80%; margin: auto;">
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
-        <p style="text-align: right">You are logged in as <b>{{ user.username }}</b>. <a href="/annotator/logout">Logout</a></p>
+        <p style="text-align: right">You are logged in as <b><a href="/annotator/profile">{{ user.username }}</a></b> ({{ user.email }}). <a href="/annotator/logout">Logout</a></p>
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">

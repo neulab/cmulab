@@ -600,6 +600,11 @@ def list_home(request):
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'public_ml_models': public_ml_models,  'form': form})
 
+@login_required(login_url='')
+def user_profile(request):
+    return render(request, "user_profile.html", {})
+
+
 def ocr_frontend(request):
     # TODO: fix this, no longer works (ocr_frontend.html used to be symlink to index.html)
     return render(request, "ocr_frontend.html", {})
