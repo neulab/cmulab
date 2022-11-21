@@ -53,6 +53,7 @@ urlpatterns = [
     path('annotator/download_file/<str:filename>', views.download_file, name='download_file'),
     path('annotator/kill_job/<str:job_id>', views.kill_job, name='kill_job'),
     path('annotator/profile', views.user_profile, name='user_profile'),
+    path('annotator/get_model_ids', views.get_model_ids, name='get_model_ids'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

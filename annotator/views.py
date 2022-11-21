@@ -806,8 +806,18 @@ def test_single_source_ocr_job(params, user, job_id, email, debug):
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
-    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
-    job_id = os.path.basename(tmp_dir)
+    model_id = request.POST.get("modelID", "")
+    if not model_id:
+        return Response("Model ID not specified!", status=status.HTTP_400_BAD_REQUEST)
+    if not bool(re.match(r"^[a-zA-Z0-9_-]+$", model_id)):
+        return Response("Model ID contains invalid characters!", status=status.HTTP_400_BAD_REQUEST)
+    # tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
+    # job_id = os.path.basename(tmp_dir)
+    tmp_dir = os.path.join(MEDIA_ROOT, model_id)
+    if os.path.exists(tmp_dir):
+        return Response("Model ID already exists!", status=status.HTTP_400_BAD_REQUEST)
+    os.mkdir(tmp_dir)
+    job_id = model_id
     logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
@@ -919,6 +929,13 @@ def download_file(request, filename):
     fs = FileSystemStorage()
     filepath = fs.path(filename)
     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
+
+@api_view(['GET'])
+@csrf_exempt
+def get_model_ids(request):
+    model_ids = [m.name for m in Mlmodel.objects.all()]
+    return Response(model_ids)
 
 
 def get_allosaurus_models(request):
