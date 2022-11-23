@@ -105,8 +105,12 @@
                     <tr>
                         {% if ml_model.status == "queued" %}
                             <td><small class="text-muted">{{ ml_model.name }}</small></td>
+                        {% elif ml_model.status == "training" %}
+                            <td><small class="text-muted">{{ ml_model.name }}</small></td>
                         {% elif ml_model.status == "unavailable" %}
-                            <td><s class="text-muted">{{ ml_model.name }}</s></td>
+                            <td><small><s class="text-muted">{{ ml_model.name }}</s></small></td>
+                        {% elif ml_model.status == "ready" %}
+                            <td><small>{{ ml_model.name }}</small></td>
                         {% else %}
                             <td><small>{{ ml_model.name }}</small></td>
                         {% endif %}
@@ -200,7 +204,7 @@
 
             <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
                 <div class="embed-responsive embed-responsive-16by9">
-                    <iframe class="embed-responsive-item" style="width:100%;" src="/static/ocr-web-interface/index.html"></iframe>
+                    <iframe class="embed-responsive-item" style="width:100%;height:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
                 </div>
             </div>
 
