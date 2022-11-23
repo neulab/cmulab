@@ -361,7 +361,8 @@ tool.</font><font color="#0070c0"><font face="Calibri, serif"> </font></font><fo
                         success: function(result) {
 							console.log(result)
                             //location.reload();
-							window.location.href = "/"
+							window.location.href = "/";
+                            window.location.replace("/");
                         },
                         error: function(XMLHttpRequest, textStatus, errorThrown) {
                             alert("Status: " + textStatus);

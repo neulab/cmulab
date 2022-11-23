@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import datetime
 
 from django.db import models
@@ -12,6 +13,8 @@ from django.core.files.storage import FileSystemStorage
 import allosaurus
 import traceback
 import shutil
+
+MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
 
@@ -36,11 +39,14 @@ class Mlmodel(models.Model):
     name = models.CharField(max_length=200, blank=True, default='', help_text='generic name of the model')
     created = models.DateTimeField(auto_now_add=True, help_text='')
     modelTrainingSpec = models.TextField(max_length=10000, help_text='TBD')
+    model_path = models.CharField(max_length=10000, default='', help_text='model file / dir path')
+    log_file = models.CharField(max_length=10000, default='', help_text='log file path')
 
+    QUEUED = 'queued'
     TRAIN = 'training'
     READY = 'ready'
     UNAVAILABLE = 'unavailable'
-    STATUS_CHOICES = [(TRAIN, 'training'), (READY, 'ready'), (UNAVAILABLE, 'unavailable')]
+    STATUS_CHOICES = [(QUEUED, 'queued'), (TRAIN, 'training'), (READY, 'ready'), (UNAVAILABLE, 'unavailable')]
     status = models.CharField(choices=STATUS_CHOICES, max_length=20, default=UNAVAILABLE, help_text='')
 
     VAD = "vad"
@@ -60,8 +66,13 @@ class Mlmodel(models.Model):
     def delete(self, *args, **kwargs):
         try:
             fs = FileSystemStorage()
-            fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
-            shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+            # TODO: store the log/working dir paths in mlmodel
+            if self.modelTrainingSpec == "allosaurus":
+                fs.delete("allosaurus_finetune_" + self.name + "_log.txt")
+                shutil.rmtree(str(allosaurus.model.get_model_path(self.name)))
+            elif self.modelTrainingSpec == "ocr-post-correction":
+                print("Deleting " + os.path.join(MEDIA_ROOT, self.name))
+                shutil.rmtree(os.path.join(MEDIA_ROOT, self.name))
         except:
             tb = traceback.format_exc()
             print(tb)

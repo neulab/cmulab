@@ -42,6 +42,9 @@ from annotator.models import Document, Transcript, UserProfile
 from annotator.forms import DocumentForm
 
 import django_rq
+from rq.command import send_stop_job_command
+from rq.job import Job
+
 from allosaurus.model import get_all_models
 from allosaurus.model import get_model_path
 from allosaurus.lm.inventory import Inventory
@@ -291,7 +294,7 @@ def batch_finetune_allosaurus(data_dir, log_file, pretrained_model, new_model_na
                 with redirect_stderr(f_stdout):
                         with redirect_stdout(f_stdout):
                                 try:
-                                        model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
+                                        model1 = Mlmodel(name=new_model_name, modelTrainingSpec="allosaurus", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION, log_file=log_file)
                                         if not owner.is_anonymous:
                                                 model1.owner = owner
                                         model1.save()
@@ -552,7 +555,8 @@ def irb_consent(request):
     request.user.userprofile.consent = True
     request.user.userprofile.save()
     request.user.save()
-    return HttpResponseRedirect("/")
+    #return HttpResponseRedirect("/")
+    return HttpResponse(status=204)
 
 @login_required(login_url='')
 def list_home(request):
@@ -581,12 +585,13 @@ def list_home(request):
     # TODO: add a new flag to Mlmodel to desginate public models
     public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
     for ml_model in chain(ml_models, public_ml_models):
+        # TODO: get log_url from mlmodel
         if ml_model.modelTrainingSpec == "allosaurus":
             if os.path.exists(os.path.join(MEDIA_ROOT, "allosaurus_finetune_" + ml_model.name + "_log.txt")):
                 ml_model.log_url = "/annotator/media/allosaurus_finetune_" + ml_model.name + "_log.txt"
             else:
                 ml_model.log_url = None
-        else:
+        elif ml_model.modelTrainingSpec == "ocr-post-correction":
             if os.path.exists(os.path.join(MEDIA_ROOT, ml_model.name + "_log.txt")):
                 ml_model.log_url = "/annotator/media/" + ml_model.name + "_log.txt"
             else:
@@ -594,6 +599,11 @@ def list_home(request):
 
     # Render list page with the documents and the form
     return render(request, 'list.html', {'documents': documents, 'ml_models': ml_models, 'public_ml_models': public_ml_models,  'form': form})
+
+@login_required(login_url='')
+def user_profile(request):
+    return render(request, "user_profile.html", {})
+
 
 def ocr_frontend(request):
     # TODO: fix this, no longer works (ocr_frontend.html used to be symlink to index.html)
@@ -771,7 +781,10 @@ def test_single_source_ocr_job(params, user, job_id, email, debug):
         run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_test_single-source.sh")
     args = [params["test_file"], params["model_dir"], params["output_folder"], params["log_file"]]
     print(' '.join([run_script] + args))
-    rc = subprocess.call([run_script] + args)
+    #rc = subprocess.call([run_script] + args)
+    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
+    with open(params["log_file"], 'w') as logfile:
+        rc = subprocess.call([run_script] + args, stdout=logfile, stderr=subprocess.STDOUT)
     subject = 'OCR post-correction task complete'
     message = '\n'.join([
         f"Hi {user.get_username()},",
@@ -793,8 +806,18 @@ def test_single_source_ocr_job(params, user, job_id, email, debug):
 @api_view(['POST'])
 @csrf_exempt
 def train_single_source_ocr(request):
-    tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
-    job_id = os.path.basename(tmp_dir)
+    model_id = request.POST.get("modelID", "")
+    if not model_id:
+        return Response("Model ID not specified!", status=status.HTTP_400_BAD_REQUEST)
+    if not bool(re.match(r"^[a-zA-Z0-9_-]+$", model_id)):
+        return Response("Model ID contains invalid characters!", status=status.HTTP_400_BAD_REQUEST)
+    # tmp_dir = tempfile.mkdtemp(prefix="train_single_source_ocr_", dir=MEDIA_ROOT)
+    # job_id = os.path.basename(tmp_dir)
+    tmp_dir = os.path.join(MEDIA_ROOT, model_id)
+    if os.path.exists(tmp_dir):
+        return Response("Model ID already exists!", status=status.HTTP_400_BAD_REQUEST)
+    os.mkdir(tmp_dir)
+    job_id = model_id
     logfilename = job_id + "_log.txt"
     fs = FileSystemStorage()
     logfile = fs.path(fs.get_available_name(logfilename))
@@ -822,7 +845,11 @@ def train_single_source_ocr(request):
         "working_dir": tmp_dir,
         "log_file": logfile
     }
-    job = django_rq.enqueue(train_single_source_ocr_job, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
+    model1 = Mlmodel(name=job_id, owner=request.user, modelTrainingSpec="ocr-post-correction", status=Mlmodel.QUEUED, tags=Mlmodel.TRANSCRIPTION, model_path=tmp_dir, log_file=logfile)
+    model1.save()
+    Path(params["log_file"]).parent.mkdir(parents=True, exist_ok=True)
+    Path(params["log_file"]).write_text(f"OCR post-correction model ID {job_id} training job queued.\n")
+    job = django_rq.enqueue(train_single_source_ocr_job, model1, params, request.user, job_id, email, debug, job_id=job_id, result_ttl=-1)
     logfile_url = "/annotator/media/" + os.path.basename(logfile)
     return Response([{
         "log_file": logfile_url,
@@ -830,16 +857,17 @@ def train_single_source_ocr(request):
     }], status=status.HTTP_202_ACCEPTED)
 
 
-def train_single_source_ocr_job(params, user, job_id, email, debug):
-    model1 = Mlmodel(name=job_id, modelTrainingSpec="ocr-post-correction", status=Mlmodel.TRAIN, tags=Mlmodel.TRANSCRIPTION)
-    model1.owner = user
+def train_single_source_ocr_job(model1, params, user, job_id, email, debug):
+    model1.status = Mlmodel.TRAIN
     model1.save()
     run_script = os.path.join(OCR_POST_CORRECTION, "cmulab_ocr_train_single-source.sh")
     if debug:
         run_script = os.path.join(OCR_POST_CORRECTION, "echo_cmulab_ocr_train_single-source.sh")
     args = [params[k] for k in ("src_filepath", "tgt_filepath", "unlabeled_filepath", "working_dir", "log_file")]
     print(' '.join([run_script] + args))
-    rc = subprocess.call([run_script] + args)
+    #rc = subprocess.call([run_script] + args)
+    with open(params["log_file"], 'a') as logfile:
+        rc = subprocess.call([run_script] + args, stdout=logfile, stderr=subprocess.STDOUT)
     model1.status = Mlmodel.READY if rc == 0 else Mlmodel.UNAVAILABLE
     model1.save()
     subject = 'OCR post-correction model training completed'
@@ -871,11 +899,43 @@ def get_auth_token(request):
     #return HttpResponse(json.dumps(response_data), status=status.HTTP_202_ACCEPTED)
     return Response(response_data)
 
+@api_view(['GET'])
+def kill_job(request, job_id):
+    queue = django_rq.queues.get_queue('default')
+    # rc = django_rq.get_connection()
+    try:
+        send_stop_job_command(queue.connection, job_id)
+    except:
+        pass
+    try:
+        job = Job.fetch(job_id, connection=queue.connection)
+        try:
+            queue.connection.lrem(queue.key, 0, job.id)
+        except:
+            pass
+        try:
+            job.delete()
+        except:
+            pass
+    except:
+        pass
+    response_data = {
+        "response": "SUCCESS"
+    }
+    return Response(response_data)
+
 
 def download_file(request, filename):
     fs = FileSystemStorage()
     filepath = fs.path(filename)
     return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
+
+
+@api_view(['GET'])
+@csrf_exempt
+def get_model_ids(request):
+    model_ids = [m.name for m in Mlmodel.objects.all()]
+    return Response(model_ids)
 
 
 def get_allosaurus_models(request):
