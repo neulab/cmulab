@@ -12,7 +12,36 @@
         <div style="width: 80%; margin: auto;">
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
-        <p style="text-align: right">You are logged in as <b><a href="/annotator/profile">{{ user.username }}</a></b> ({{ user.email }}). <a href="/annotator/logout">Logout</a></p>
+        <p style="text-align: right">
+            You are logged in as
+            <b><a href="#" data-toggle="modal" data-target="#userSettingsModal">{{ user.username }}</a></b>
+            ({{ user.email }}). <a href="/annotator/logout">Logout</a>
+        </p>
+
+        <div class="modal fade" id="userSettingsModal" tabindex="-1" role="dialog" aria-labelledby="userSettingsModalTitle"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="userSettingsModalTitle">User Settings</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/email/">Add, update or verify your email</a>
+                        </p>
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/password/change/">Change password</a></p>
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/password/reset/">Send password reset
+                                email</a></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
