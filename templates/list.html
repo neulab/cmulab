@@ -18,7 +18,7 @@
             ({{ user.email }}). <a href="/annotator/logout">Logout</a>
         </p>
 
-        <div class="modal fade" id="userSettingsModal" tabindex="-1" role="dialog" aria-labelledby="userSettingsModalTitle"
+        <div class="modal" id="userSettingsModal" tabindex="-1" role="dialog" aria-labelledby="userSettingsModalTitle"
             aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -66,28 +66,21 @@
             <div class="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
                 <br>
                 <!-- Check us out on <a href="https://github.com/neulab/cmulab">Github</a> -->
-                <div id="documentation" style="width:90%; margin:auto;">
-
-<p>&nbsp;</p>
-<h2><img alt="" src="https://shrutirij.github.io/ocr-el/assets/postcorrection.png" style="float:right; height:400px; width:600px" />OCR post-correction</h2>
-
-<p>OCR post-correction tool allows you to iteratively train and improve a model that fixes the recognition errors made by a first pass OCR system. In the first step, you upload a set of images (scanned documents) and get back the transcribed output from the Google Vision cloud service. You can then manually correct a few of these documents to create a training set and upload them to the CMULAB server in the second step. Once training finishes, you can use the new model to transcribe more images. Steps 2 and 3 can be repeated multiple times to iteratively improve the model. You can read more about our research&nbsp;<a href="https://shrutirij.github.io/ocr-el/">here</a>.</p>
-
-
-
-<h1>&nbsp;</h1>
-<h1>&nbsp;</h1>
-
-<h1>&nbsp;</h1>
-
-<h2><img alt="" src="https://user-images.githubusercontent.com/2358298/164206810-e2d973ab-25df-4490-853e-35d3db49afd5.png" style="float:right; height:649px; width:600px" />CMULAB extension for ELAN</h2>
-
-<p>Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization. You can download and try it out from <a href="https://github.com/neulab/cmulab_elan_extension">here</a>.</p>
-
-<p>&nbsp;</p>
-
-<p>&nbsp;</p>
-
+                <div class="card-deck">
+                <div class="card">
+                    <img class="card-img-top" src="/static/images/postcorrection.png" alt="OCR post-correction">
+                    <div class="card-body">
+                        <h5 class="card-title">OCR post-correction</h5>
+<p class="card-text">OCR post-correction tool allows you to iteratively train and improve a model that fixes the recognition errors made by a first pass OCR system. In the first step, you upload a set of images (scanned documents) and get back the transcribed output from the Google Vision cloud service. You can then manually correct a few of these documents to create a training set and upload them to the CMULAB server in the second step. Once training finishes, you can use the new model to transcribe more images. Steps 2 and 3 can be repeated multiple times to iteratively improve the model. You can read more about our research&nbsp;<a href="https://shrutirij.github.io/ocr-el/">here</a>.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <img class="card-img-top" src="/static/images/elan2.png" alt="CMULAB extension for ELAN">
+                    <div class="card-body">
+                        <h5 class="card-title">CMULAB extension for ELAN</h5>
+<p class="card-text">Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization. You can download and try it out from <a href="https://github.com/neulab/cmulab_elan_extension">here</a>.</p>
+                    </div>
+                </div>
                 </div>
 
             </div>
@@ -156,7 +149,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" class="btn btn-danger delete-button"
+                            <button type="button" class="btn btn-sm btn-danger delete-button"
                                     data-toggle="modal" data-target="#deleteModalCenter"
                                     data-id="{{ ml_model.id }}"
                                     data-name="{{ ml_model.name }}">
@@ -233,7 +226,7 @@
 
             <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
                 <div class="embed-responsive embed-responsive-16by9">
-                    <iframe class="embed-responsive-item" style="width:100%;height:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
+                    <iframe class="embed-responsive-item" style="width:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
                 </div>
             </div>
 
