@@ -71,14 +71,22 @@
                     <img class="card-img-top" src="/static/images/postcorrection.png" alt="OCR post-correction">
                     <div class="card-body">
                         <h5 class="card-title">OCR post-correction</h5>
-<p class="card-text">OCR post-correction tool allows you to iteratively train and improve a model that fixes the recognition errors made by a first pass OCR system. In the first step, you upload a set of images (scanned documents) and get back the transcribed output from the Google Vision cloud service. You can then manually correct a few of these documents to create a training set and upload them to the CMULAB server in the second step. Once training finishes, you can use the new model to transcribe more images. Steps 2 and 3 can be repeated multiple times to iteratively improve the model. You can read more about our research&nbsp;<a href="https://shrutirij.github.io/ocr-el/">here</a>.</p>
+                        <p class="card-text">This tool allows you to train a model that fixes the recognition errors made by a first pass OCR system. In the first step, the user uploads a set of images of documents and gets back the transcribed output from an off-the-shelf OCR engine. Once a few of these documents have been manually corrected, they can be used in step 2 to train a new post-correction model. The new model can be used to correct more first-pass OCR output in step 3. Steps 2 and 3 can be repeated multiple times to iteratively improve the model.</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="https://shrutirij.github.io/ocr-el/" target="_blank" class="btn btn-primary">Learn more</a>
+                        <a href="#tools" onclick="$('#tools-tab').tab('show');" class="btn btn-success">Get started</a>
                     </div>
                 </div>
                 <div class="card">
                     <img class="card-img-top" src="/static/images/elan2.png" alt="CMULAB extension for ELAN">
                     <div class="card-body">
                         <h5 class="card-title">CMULAB extension for ELAN</h5>
-<p class="card-text">Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization. You can download and try it out from <a href="https://github.com/neulab/cmulab_elan_extension">here</a>.</p>
+<p class="card-text">Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization.</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="https://github.com/neulab/cmulab_elan_extension/blob/main/cmulab_services.md" target="_blank" class="btn btn-primary">Learn more</a>
+                        <a href="https://github.com/neulab/cmulab_elan_extension#setup" target="_blank" class="btn btn-success">Get started</a>
                     </div>
                 </div>
                 </div>
