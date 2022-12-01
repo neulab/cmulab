@@ -1,0 +1,42 @@
+<h2><a href="https://github.com/neulab/cmulab_elan_extension">CMULAB plugin</a> for <a href="https://archive.mpi.nl/tla/elan">ELAN</a></h2>
+<p>This plugin is still a work in progress. Currently it allows users to do automatic speaker diarization and phone transcription using the <a href="https://github.com/neulab/cmulab/">CMU Linguistic Annotation Backend</a> server APIs. Users can even upload data to fine-tune the pre-trained phone recognizer (<a href="https://github.com/xinjli/allosaurus">Allosaurus</a>)</p>
+<h3>Setup</h3>
+<p>Note: The plugin requires Python 3.</p>
+<h4>Linux</h4>
+<ol>
+<li>
+<p>Download the latest version of ELAN from <a href="https://archive.mpi.nl/tla/elan/download">here</a> and install it:
+<code>wget https://www.mpi.nl/tools/elan/ELAN-XX_linux.tar.gz
+tar xzf ELAN-XX_linux.tar.gz</code></p>
+</li>
+<li>
+<p><a href="https://github.com/zaidsheikh/cmulab_elan_extension/archive/refs/heads/main.zip">Download a copy of this repo</a> and unzip it. Copy the <code>cmulab_elan_extension-main/</code> folder into ELAN's extensions dir (<code>ELAN-XX/lib/app/extensions/</code>).</p>
+</li>
+</ol>
+<h4>Mac</h4>
+<ol>
+<li>If ELAN is not already installed on your Mac, <a href="https://archive.mpi.nl/tla/elan/download">download the latest .dmg installer</a> and install it. It should be installed in the <code>/Applications/ELAN_XX</code> directory, where <code>XX</code> is the name of the version.</li>
+<li>Download this <a href="https://github.com/zaidsheikh/cmulab_elan_extension/archive/refs/heads/main.zip">zip file</a> and unzip it. You should see a folder named <code>cmulab_elan_extension-main</code> containing the contents of this repo.</li>
+<li>Right-click <code>ELAN_XX</code> and click "Show Package Contents", then copy your <code>cmulab_elan_extension-main</code> folder into <code>ELAN_XX.app/Contents/app/extensions</code>.</li>
+</ol>
+<p>Note: The built-in Tk GUI library in Apple-supplied Python 3 in some macOS versions (such as macOS 12 Monterey) have bugs that might cause dialog boxes to not display properly. In that case please install the latest python from <a href="https://www.python.org/downloads/">python.org</a>.</p>
+<h4>Windows</h4>
+<ol>
+<li>Download the latest version of ELAN from <a href="https://archive.mpi.nl/tla/elan/download">here</a> and install it.</li>
+<li><a href="https://github.com/zaidsheikh/cmulab_elan_extension/archive/refs/heads/main.zip">Download a copy of this repo</a> and unzip it. Copy the <code>cmulab_elan_extension-main/</code> folder into ELAN's extensions dir (<code>ELAN-XX/app/extensions/</code>).</li>
+<li>Install <a href="https://www.python.org/downloads/">Python 3</a> if it isn't already installed.</li>
+</ol>
+<h4>Troubleshooting</h4>
+<p>If the extension is not visible in the "Recognizers" tab or doesn't run after following the above instructions, please make sure that the contents of the zip file are extracted to:</p>
+<p><code>ELAN-6-2/app/extensions/cmulab_elan_extension-main/</code> rather than:</p>
+<p><code>ELAN-6-2/app/extensions/cmulab_elan_extension-main/cmulab_elan_extension-main/</code></p>
+<p>Also the downloaded <code>cmulab_elan_extension-main.zip</code> should be removed from the extensions directory <code>ELAN-6-2/app/extensions/</code>, otherwise ELAN tries to load the zip file rather than the extracted <code>cmulab_elan_extension-main/</code> folder.</p>
+<h3>Instructions</h3>
+<p>Start ELAN with the provided test audio file</p>
+<p><code>ELAN_6-3/bin/ELAN allosaurus-elan/test/allosaurus.wav &amp;</code></p>
+<p>Switch to the "Recognizers" tab and then select "CMU Linguistic Annotation Backend" from the Recognizer dropdown list at the top and then click the "Start" button.
+If this is your first time using this plugin, you will be prompted to login to the <a href="https://cmulab.dev">CMULAB backend server</a> and get an access token.</p>
+More detailed instructions for each specific service (phone transcription, diarization etc.) can be found <a href="https://github.com/neulab/cmulab_elan_extension/blob/main/cmulab_services.md">here</a>
+<video width="800" height="600" controls>
+    <source src="https://user-images.githubusercontent.com/2358298/165535030-1548fd36-53d2-4ac6-b815-ae6c742ab88b.mp4" type="video/mp4">
+</video>
