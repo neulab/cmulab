@@ -59,7 +59,10 @@
                 <a class="nav-link" id="public-models-tab"  href="#public_models" role="tab" aria-controls="public_models" aria-selected="false">Public models</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="tools-tab"  href="#tools" role="tab" aria-controls="tools" aria-selected="false">Tools</a>
+                <a class="nav-link" id="ocr-tab"  href="#ocr" role="tab" aria-controls="ocr" aria-selected="false">OCR</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="elan-tab"  href="#elan" role="tab" aria-controls="elan" aria-selected="false">ELAN extension</a>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
@@ -75,7 +78,7 @@
                     </div>
                     <div class="card-footer text-center">
                         <a href="https://shrutirij.github.io/ocr-el/" target="_blank" class="btn btn-primary">Learn more</a>
-                        <a href="#tools" onclick="$('#tools-tab').tab('show');" class="btn btn-success">Get started</a>
+                        <a href="#ocr" onclick="$('#ocr-tab').tab('show');" class="btn btn-success">Get started</a>
                     </div>
                 </div>
                 <div class="card">
@@ -86,7 +89,7 @@
                     </div>
                     <div class="card-footer text-center">
                         <a href="https://github.com/neulab/cmulab_elan_extension/blob/main/cmulab_services.md" target="_blank" class="btn btn-primary">Learn more</a>
-                        <a href="https://github.com/neulab/cmulab_elan_extension#setup" target="_blank" class="btn btn-success">Get started</a>
+                        <a href="#elan" onclick="$('#elan-tab').tab('show');" class="btn btn-success">Get started</a>
                     </div>
                 </div>
                 </div>
@@ -232,9 +235,17 @@
                 {% endif %}
             </div>
 
-            <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
+            <div class="tab-pane fade" id="ocr" role="tabpanel" aria-labelledby="ocr-tab">
                 <div class="embed-responsive embed-responsive-16by9">
                     <iframe class="embed-responsive-item" style="width:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="elan" role="tabpanel" aria-labelledby="elan-tab">
+                <div class="card">
+                    <div class="card-body">
+                    {% include "cmulab_elan_extension.html" %}
+                    </div>
                 </div>
             </div>
 
