@@ -17,3 +17,5 @@ scipy==1.2.1
 google-cloud-vision==2.7.2
 pdf2image==1.16.0
 django-cors-headers==3.4.0
+django-allauth-ui==0.1.0
+django-widget-tweaks==1.4.12

@@ -12,3 +12,5 @@ pympi-ling
 pyyaml
 requests==2.21.0
 scipy==1.2.1
+django-allauth-ui==0.1.0
+django-widget-tweaks==1.4.12
