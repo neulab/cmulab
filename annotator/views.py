@@ -761,6 +761,10 @@ def test_single_source_ocr(request):
     model_id = request.POST["model_id"]
     print(model_id)
     model_dir = os.path.join(MEDIA_ROOT, model_id, "expt")
+
+    if not os.path.exists(model_dir):
+        return Response("Specified model ID does not exist or is no longer available!", status=status.HTTP_400_BAD_REQUEST)
+
     test_data = request.FILES['testData']
     test_filename = fs.save(test_data.name, test_data)
     test_filepath = fs.path(test_filename)
