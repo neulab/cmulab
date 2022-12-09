@@ -277,9 +277,11 @@
             $('.nav-tabs a').click(function (e) {
                         $(this).tab('show');
             });
-            $(".delete-button").click(function () {
+            $('.table').on('click', '.delete-button', function () {
                 let model_id = $(this).data('id');
                 let model_name = $(this).data('name');
+                console.log(model_id);
+                console.log(model_name);
                 $("#deleteModalLongTitle").text("Delete " + model_name + " ?");
                 $("#actual-delete-button").data('id', model_id);
                 $("#actual-delete-button").data('name', model_name);
