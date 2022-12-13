@@ -9,3 +9,4 @@ annotator/media/
 log.*
 .env.yml
 *.code-workspace
+redis.conf
