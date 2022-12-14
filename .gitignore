@@ -2,8 +2,11 @@ __pycache__
 db.sqlite3
 speech/migrations/
 *.swp
+*.swo
 cmulab.egg-info/
 *.pyc
 annotator/media/
 log.*
 .env.yml
+*.code-workspace
+redis.conf

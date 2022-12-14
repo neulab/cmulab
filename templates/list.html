@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         <title>CMU Linguistic Annotation Backend</title>
     </head>
@@ -12,7 +13,36 @@
         <div style="width: 80%; margin: auto;">
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
-        <p style="text-align: right">You are logged in as <b><a href="/annotator/profile">{{ user.username }}</a></b> ({{ user.email }}). <a href="/annotator/logout">Logout</a></p>
+        <p style="text-align: right">
+            You are logged in as
+            <b><a href="#" data-toggle="modal" data-target="#userSettingsModal">{{ user.username }}</a></b>
+            ({{ user.email }}). <a href="/annotator/logout">Logout</a>
+        </p>
+
+        <div class="modal" id="userSettingsModal" tabindex="-1" role="dialog" aria-labelledby="userSettingsModalTitle"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="userSettingsModalTitle">User Settings</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/email/">Add, update or verify your email</a>
+                        </p>
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/password/change/">Change password</a></p>
+                        <p><a class="btn btn-default" role="button" target="_blank" href="/accounts/password/reset/">Send password reset
+                                email</a></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
@@ -30,35 +60,39 @@
                 <a class="nav-link" id="public-models-tab"  href="#public_models" role="tab" aria-controls="public_models" aria-selected="false">Public models</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="tools-tab"  href="#tools" role="tab" aria-controls="tools" aria-selected="false">Tools</a>
+                <a class="nav-link" id="ocr-tab"  href="#ocr" role="tab" aria-controls="ocr" aria-selected="false">OCR</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="elan-tab"  href="#elan" role="tab" aria-controls="elan" aria-selected="false">ELAN extension</a>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="about" role="tabpanel" aria-labelledby="about-tab">
                 <br>
                 <!-- Check us out on <a href="https://github.com/neulab/cmulab">Github</a> -->
-                <div id="documentation" style="width:90%; margin:auto;">
-
-<p>&nbsp;</p>
-<h2><img alt="" src="https://shrutirij.github.io/ocr-el/assets/postcorrection.png" style="float:right; height:400px; width:600px" />OCR post-correction</h2>
-
-<p>OCR post-correction tool allows you to iteratively train and improve a model that fixes the recognition errors made by a first pass OCR system. In the first step, you upload a set of images (scanned documents) and get back the transcribed output from the Google Vision cloud service. You can then manually correct a few of these documents to create a training set and upload them to the CMULAB server in the second step. Once training finishes, you can use the new model to transcribe more images. Steps 2 and 3 can be repeated multiple times to iteratively improve the model. You can read more about our research&nbsp;<a href="https://shrutirij.github.io/ocr-el/">here</a>.</p>
-
-
-
-<h1>&nbsp;</h1>
-<h1>&nbsp;</h1>
-
-<h1>&nbsp;</h1>
-
-<h2><img alt="" src="https://user-images.githubusercontent.com/2358298/164206810-e2d973ab-25df-4490-853e-35d3db49afd5.png" style="float:right; height:649px; width:600px" />CMULAB extension for ELAN</h2>
-
-<p>Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization. You can download and try it out from <a href="https://github.com/neulab/cmulab_elan_extension">here</a>.</p>
-
-<p>&nbsp;</p>
-
-<p>&nbsp;</p>
-
+                <div class="card-deck">
+                <div class="card">
+                    <img class="card-img-top" src="/static/images/postcorrection.png" alt="OCR post-correction">
+                    <div class="card-body">
+                        <h5 class="card-title">OCR post-correction</h5>
+                        <p class="card-text">This tool allows you to train a model that fixes the recognition errors made by a first pass OCR system. In the first step, the user uploads a set of images of documents and gets back the transcribed output from an off-the-shelf OCR engine. Once a few of these documents have been manually corrected, they can be used in step 2 to train a new post-correction model. The new model can be used to correct more first-pass OCR output in step 3. Steps 2 and 3 can be repeated multiple times to iteratively improve the model.</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="https://shrutirij.github.io/ocr-el/" target="_blank" class="btn btn-primary">Learn more</a>
+                        <a href="#ocr" onclick="$('#ocr-tab').tab('show');" class="btn btn-success">Get started</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <img class="card-img-top" src="/static/images/elan2.png" alt="CMULAB extension for ELAN">
+                    <div class="card-body">
+                        <h5 class="card-title">CMULAB extension for ELAN</h5>
+<p class="card-text">Our ELAN extension enables you to generate phone transcriptions for any audio file. Our phone transcription API is based on the Allosaurus pretrained universal phone recognizer which supports more than 2000 languages. You can also&nbsp;fine-tune the available Allosaurus pretrained models by correcting the generated transcriptions manually and uploading them to the CMULAB server using the ELAN extension. Step 1 and 2 can be repeated to iteratively improve the models. The ELAN extension also supports speaker diarization.</p>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="https://github.com/neulab/cmulab_elan_extension/blob/main/cmulab_services.md" target="_blank" class="btn btn-primary">Learn more</a>
+                        <a href="#elan" onclick="$('#elan-tab').tab('show');" class="btn btn-success">Get started</a>
+                    </div>
+                </div>
                 </div>
 
             </div>
@@ -93,20 +127,27 @@
 						<div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="models-tab">
                 <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
                 {% if ml_models %}
-                <table class="table">
+                <table data-toggle="table" data-search="true" data-show-columns="true" data-sortable="true" class="table table-hover table-striped">
+                    <thead>
                     <tr>
-                        <td>Model ID</td>
-                        <td>Model</td>
-                        <td>Timestamp</td>
-                        <td>Status</td>
-                        <td></td>
+                        <th data-sortable="true">Model ID</th>
+                        <th data-sortable="true">Model</th>
+                        <th data-sortable="true">Timestamp</th>
+                        <th data-sortable="true">Status</th>
+                        <th data-sortable="true"></th>
                     </tr>
+                    </thead>
+                    <tbody>
                     {% for ml_model in ml_models %}
                     <tr>
                         {% if ml_model.status == "queued" %}
                             <td><small class="text-muted">{{ ml_model.name }}</small></td>
+                        {% elif ml_model.status == "training" %}
+                            <td><small class="text-muted">{{ ml_model.name }}</small></td>
                         {% elif ml_model.status == "unavailable" %}
-                            <td><s class="text-muted">{{ ml_model.name }}</s></td>
+                            <td><small><s class="text-muted">{{ ml_model.name }}</s></small></td>
+                        {% elif ml_model.status == "ready" %}
+                            <td><small>{{ ml_model.name }}</small></td>
                         {% else %}
                             <td><small>{{ ml_model.name }}</small></td>
                         {% endif %}
@@ -123,7 +164,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" class="btn btn-danger delete-button"
+                            <button type="button" class="btn btn-sm btn-danger delete-button"
                                     data-toggle="modal" data-target="#deleteModalCenter"
                                     data-id="{{ ml_model.id }}"
                                     data-name="{{ ml_model.name }}">
@@ -138,6 +179,7 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    </tbody>
                 </table>
 		<div class="modal fade" id="deleteModalCenter" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
 		    <div class="modal-dialog modal-dialog-centered" role="document">
@@ -169,13 +211,16 @@
 						<div class="tab-pane fade" id="public_models" role="tabpanel" aria-labelledby="public-models-tab">
                 <!--<h5 style="text-align: center">Fine-tuned phone recognizer (Allosaurus) models</h5>-->
                 {% if public_ml_models %}
-                <table class="table">
+                <table data-toggle="table" data-search="true" data-show-columns="true" data-sortable="true" class="table table-hover table-striped">
+                    <thead>
                     <tr>
-                        <td>Model ID</td>
-                        <td>Model</td>
-                        <td>Timestamp</td>
-                        <td>Status</td>
+                        <th data-sortable="true">Model ID</th>
+                        <th data-sortable="true">Model</th>
+                        <th data-sortable="true">Timestamp</th>
+                        <th data-sortable="true">Status</th>
                     </tr>
+                    </thead>
+                    <tbody>
                     {% for public_ml_model in public_ml_models %}
                     <tr>
                         <td><small>{{ public_ml_model.name }}</small></td>
@@ -192,15 +237,24 @@
                         </td>
                     </tr>
                     {% endfor %}
+                    </tbody>
                 </table>
                 {% else %}
                     <br><p>No publicly available models found!</p>
                 {% endif %}
             </div>
 
-            <div class="tab-pane fade" id="tools" role="tabpanel" aria-labelledby="tools-tab">
+            <div class="tab-pane fade" id="ocr" role="tabpanel" aria-labelledby="ocr-tab">
                 <div class="embed-responsive embed-responsive-16by9">
-                    <iframe class="embed-responsive-item" style="width:100%;" src="/static/ocr-web-interface/index.html"></iframe>
+                    <iframe class="embed-responsive-item" style="width:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="elan" role="tabpanel" aria-labelledby="elan-tab">
+                <div class="card">
+                    <div class="card-body">
+                    {% include "cmulab_elan_extension.html" %}
+                    </div>
                 </div>
             </div>
 
@@ -212,6 +266,7 @@
         <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
         <script>
             var csrf_token = '{{csrf_token}}';
             $(document).ready(function(){
@@ -222,9 +277,11 @@
             $('.nav-tabs a').click(function (e) {
                         $(this).tab('show');
             });
-            $(".delete-button").click(function () {
+            $('.table').on('click', '.delete-button', function () {
                 let model_id = $(this).data('id');
                 let model_name = $(this).data('name');
+                console.log(model_id);
+                console.log(model_name);
                 $("#deleteModalLongTitle").text("Delete " + model_name + " ?");
                 $("#actual-delete-button").data('id', model_id);
                 $("#actual-delete-button").data('name', model_name);
