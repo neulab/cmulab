@@ -8,6 +8,20 @@ from django.conf import settings
 from django.views.static import serve
 from django.middleware.csrf import get_token
 
+from transformers import pipeline
+import torch
+# bug fix for torch 1.9.0
+# https://stackoverflow.com/questions/68901236/urllib-error-httperror-http-error-403-rate-limit-exceeded-when-loading-resnet1
+torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
+
+TRANSLATION_MODELS = {
+    "huggingface-transformers": {
+        # ("fr", "en", "Helsinki-NLP/opus-mt-fr-en"): pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en")
+    },
+    "pytorch-fairseq": {
+    #     ("en", "de", "transformer.wmt19.en-de"): torch.hub.load('pytorch/fairseq', 'transformer.wmt19.en-de', checkpoint_file='model1.pt:model2.pt:model3.pt:model4.pt', tokenizer='moses', bpe='fastbpe')
+    }
+}
 
 
 from zipfile import ZipFile
@@ -886,6 +900,41 @@ def train_single_source_ocr_job(model1, params, user, job_id, email, debug):
     ])
     send_job_completion_email(email, subject, message, params["log_file"])
 
+@api_view(['POST'])
+@csrf_exempt
+def translate(request):
+    toolkit = request.POST.get("toolkit")
+    model_id = request.POST.get("model_id")
+    lang_from = request.POST.get("lang_from")
+    lang_to = request.POST.get("lang_to")
+    text = request.POST.get("text")
+    if not (toolkit and model_id and lang_from and lang_to and text):
+        return Response("required parameters: toolkit, model, lang_from, lang_to, text", status=status.HTTP_400_BAD_REQUEST)
+    model_key = (lang_from, lang_to, model_id)
+    # TODO: unload least recently used models from memory
+    if toolkit == "pytorch-fairseq":
+        translator = TRANSLATION_MODELS[toolkit].get(model_key)
+        if not translator:
+            try:
+                print(f"Loading {model_id}, please wait...")
+                translator = torch.hub.load('pytorch/fairseq', model_id, checkpoint_file='model1.pt:model2.pt:model3.pt:model4.pt', tokenizer='moses', bpe='fastbpe')
+                TRANSLATION_MODELS[toolkit][model_key] = translator
+            except:
+                return Response(f"An error occurred", status=status.HTTP_400_BAD_REQUEST)
+        response_text = translator.translate(text)
+    elif toolkit == "huggingface-transformers":
+        translator = TRANSLATION_MODELS[toolkit].get(model_key)
+        if not translator:
+            try:
+                print(f"Loading {model_id}, please wait...")
+                translator = pipeline("translation", model=model_id)
+                TRANSLATION_MODELS[toolkit][model_key] = translator
+            except:
+                return Response(f"An error occurred", status=status.HTTP_400_BAD_REQUEST)
+        response_text = translator(text)[0].get('translation_text')
+    else:
+        return Response(f"Supported toolkits: {list(TRANSLATION_MODELS.keys())}", status=status.HTTP_400_BAD_REQUEST)
+    return Response(response_text, status=status.HTTP_202_ACCEPTED)
 
 
 # @login_required(login_url='')
