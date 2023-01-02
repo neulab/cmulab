@@ -1,0 +1,76 @@
+<form id="translateform" action="/annotator/translate">
+    <div class="input-group">
+        <div class="form-group col-4">
+            <label for="exampleFormControlSelect1">Toolkit</label>
+            <select class="form-control" name="toolkit" id="toolkit">
+                <option>huggingface-transformers</option>
+                <option>pytorch-fairseq</option>
+            </select>
+        </div>
+        <div class="form-group col-4">
+            <label for="exampleFormControlSelect2">Model</label>
+            <select class="form-control" name="model_id" id="model_id">
+                <option>Helsinki-NLP/opus-mt-fr-en</option>
+                <option>transformer.wmt19.en-de</option>
+            </select>
+        </div>
+        <div class="form-group col-2">
+            <label for="exampleFormControlSelect1">From</label>
+            <select class="form-control" name="lang_from" id="lang_from">
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="form-group col-2">
+            <label for="exampleFormControlSelect2">To</label>
+            <select class="form-control" name="lang_to" id="lang_to">
+                <option value="en">English</option>
+                <option value="de">German</option>
+            </select>
+        </div>
+    </div>
+    <div class="input-group">
+        <div class="form-group col-6">
+            <label for="exampleFormControlTextarea1">Text to translate</label>
+            <textarea class="form-control" name="text" id="text" rows="10"></textarea>
+        </div>
+        <div class="form-group col-6">
+            <label for="exampleFormControlTextarea1">Translated text</label>
+            <textarea disabled class="form-control" id="response" rows="10">Translated text will appear here</textarea>
+        </div>
+    </div>
+    <div class="form-group col">
+        <input class="btn btn-primary" id="submit" type="submit" value="Translate" />
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    </div>
+</form>
+<script>
+    var csrf_token = '{{csrf_token}}';
+    $("#translateform").submit(function (e) {
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+        $("#submit").prop("disabled", true);
+        $("#submit").val("Translating...");
+        var form = $(this);
+        var actionUrl = form.attr('action');
+        console.log(form.serialize());
+        $.ajax({
+            type: "POST",
+            url: actionUrl,
+            headers: { "X-CSRFToken": csrf_token },
+            data: form.serialize(), // serializes the form's elements.
+            success: function (data) {
+                console.log(data);
+                $("#response").text(data); // show response from the php script.
+                $("#submit").removeAttr('disabled');
+                $("#submit").val("Translate");
+
+            },
+            error: function (data) {
+                console.log(data);
+                $("#response").text(data); // show response from the php script.
+                $("#submit").removeAttr('disabled');
+                $("#submit").val("Translate");
+            },
+        });
+    });
+</script>
