@@ -26,9 +26,12 @@ trained_model_name="my_trained_model"
 # ------------------------------END: Required experimental settings------------------------------
 
 
-eval $(conda shell.bash hook)
-conda activate ocr-post-correction
-#source activate ocr-post-correction
+eval $(conda shell.bash hook) &>/dev/null
+conda activate ocr-post-correction &>/dev/null
+source activate ocr-post-correction &>/dev/null
+echo $CONDA_DEFAULT_ENV
+echo $CONDA_PREFIX
+
 set -x
 
     annotated_dir=${working_dir}/text_outputs/corrected/
