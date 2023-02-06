@@ -8,6 +8,7 @@ from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.views.static import serve
 from django.middleware.csrf import get_token
+from django.views.decorators.cache import never_cache
 
 from transformers import pipeline
 import torch
@@ -1000,6 +1001,7 @@ def download_file(request, filename):
 
 @api_view(['GET'])
 @csrf_exempt
+@never_cache
 def get_model_ids(request):
     model_ids = [m.name for m in Mlmodel.objects.all()]
     return Response(model_ids)
