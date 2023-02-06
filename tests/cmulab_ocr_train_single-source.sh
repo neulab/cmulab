@@ -118,9 +118,10 @@ set -x
     --train_only
 
     if [ -s ${expt_folder}/models/${trained_model_name} ]; then
-        echo "Traning completed successfully!"
+        cat ${expt_folder}/train_logs/${trained_model_name}.log
+        echo "Training completed successfully!"
         exit 0
     else
-        echo "Traning failed!"
+        echo "Training failed!"
         exit 1
     fi
