@@ -55,6 +55,11 @@ set -x
 
     if [ "$(ls -A ${output_folder}/outputs/)" ]; then
         echo "Job completed successfully!"
+        for f in $(ls ${output_folder}/outputs/)
+        do
+            f2=${f#${trained_model_name}_}
+            mv ${output_folder}/outputs/$f ${output_folder}/outputs/${f2%.output}
+        done
         exit 0
     else
         echo "Job failed!"
