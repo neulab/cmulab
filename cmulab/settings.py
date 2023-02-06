@@ -204,6 +204,9 @@ REST_FRAMEWORK = {
 MEDIA_URL = '/annotator/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
 
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50 mb
+DATA_UPLOAD_MAX_MEMORY_SIZE = 262144000 # 250 mb
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 with open(os.path.join(BASE_DIR, ".env.yml"), 'r') as fin:
