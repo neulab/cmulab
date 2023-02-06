@@ -39,6 +39,17 @@ set -x
     (cd ${annotated_dir}/src1; unzip -j $src1_data)
     (cd ${annotated_dir}/tgt; unzip -j $tgt_data)
 
+    # The UI already forces user to upload the set of filenames for source and target datasets
+    # but doesn't check whether the number of lines in the corresponding files are equal
+    for f in $(ls ${annotated_dir}/src1/)
+    do
+        if [ "$(wc -l < ${annotated_dir}/src1/$f)" -ne "$(wc -l < ${annotated_dir}/tgt/$f)" ]; then
+            echo "Number of lines in $f differ in the source and target datasets."
+            echo "The original lines in the source files and the corrected lines in the target files should be equal in number and correctly aligned."
+            exit 1
+        fi
+    done
+
     unannotated_src=${working_dir}/text_outputs/uncorrected/src1/
     mkdir -p $unannotated_src
     (cd $unannotated_src; unzip -j $unlabeled_data)
