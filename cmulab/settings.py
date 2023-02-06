@@ -59,7 +59,7 @@ RQ_QUEUES = {
         'PORT': 8379,
         'DB': 0,
         'PASSWORD': 'asdf234KHk12ala01#1sasHH43',
-        'DEFAULT_TIMEOUT': 3600,
+        'DEFAULT_TIMEOUT': 36000,
     }
 }
 
