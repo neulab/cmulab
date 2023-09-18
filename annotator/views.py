@@ -916,12 +916,15 @@ def unload_all_translation_models():
 def translate(request):
     toolkit = request.POST.get("toolkit")
     model_id = request.POST.get("model_id")
-    lang_from = request.POST.get("lang_from")
-    lang_to = request.POST.get("lang_to")
     text = request.POST.get("text")
-    if not (toolkit and model_id and lang_from and lang_to and text):
-        return Response("required parameters: toolkit, model, lang_from, lang_to, text", status=status.HTTP_400_BAD_REQUEST)
-    model_key = (toolkit, lang_from, lang_to, model_id)
+    # lang_from = request.POST.get("lang_from")
+    # lang_to = request.POST.get("lang_to")
+    # if not (toolkit and model_id and lang_from and lang_to and text):
+        # return Response("required parameters: toolkit, model, lang_from, lang_to, text", status=status.HTTP_400_BAD_REQUEST)
+    if not (toolkit and model_id  and text):
+        return Response("required parameters: toolkit, model, text", status=status.HTTP_400_BAD_REQUEST)
+    # model_key = (toolkit, lang_from, lang_to, model_id)
+    model_key = model_id
     # TODO: unload least recently used models from memory
     translator = TRANSLATION_MODELS.get(model_key)
     if toolkit == "pytorch-fairseq":

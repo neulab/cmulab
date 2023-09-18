@@ -1,33 +1,39 @@
 <form id="translateform" action="/annotator/translate">
     <div class="input-group">
         <div class="form-group col-4">
-            <label for="exampleFormControlSelect1">Toolkit</label>
+            <label for="exampleFormControlSelect1">Hub</label>
             <select class="form-control" name="toolkit" id="toolkit">
-                <option>huggingface-transformers</option>
-                <option>pytorch-fairseq</option>
+                <option value="huggingface-transformers">HuggingFace</option>
+                <option value="pytorch-fairseq" disabled>pytorch/fairseq</option>
             </select>
         </div>
         <div class="form-group col-4">
             <label for="exampleFormControlSelect2">Model</label>
-            <select class="form-control" name="model_id" id="model_id">
-                <option>Helsinki-NLP/opus-mt-fr-en</option>
-                <option>transformer.wmt19.en-de</option>
-            </select>
+            <!--<select class="form-control" name="model_id" id="model_id">-->
+                <!--<option>Helsinki-NLP/opus-mt-fr-en</option>-->
+                <!--<option>transformer.wmt19.en-de</option>-->
+            <!--</select>-->
+						<input class="form-control" name="model_id" id="model_id" type="text" list="model_list" />
+						<datalist id="model_list">
+								<option>Helsinki-NLP/opus-mt-fr-en</option>
+								<option>Helsinki-NLP/opus-mt-en-fr</option>
+								<!--<option>transformer.wmt19.en-de</option>-->
+						</datalist>
         </div>
-        <div class="form-group col-2">
-            <label for="exampleFormControlSelect1">From</label>
-            <select class="form-control" name="lang_from" id="lang_from">
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-        <div class="form-group col-2">
-            <label for="exampleFormControlSelect2">To</label>
-            <select class="form-control" name="lang_to" id="lang_to">
-                <option value="en">English</option>
-                <option value="de">German</option>
-            </select>
-        </div>
+        <!--<div class="form-group col-2">-->
+            <!--<label for="exampleFormControlSelect1">From</label>-->
+            <!--<select class="form-control" name="lang_from" id="lang_from">-->
+                <!--<option value="fr">French</option>-->
+                <!--<option value="en">English</option>-->
+            <!--</select>-->
+        <!--</div>-->
+        <!--<div class="form-group col-2">-->
+            <!--<label for="exampleFormControlSelect2">To</label>-->
+            <!--<select class="form-control" name="lang_to" id="lang_to">-->
+                <!--<option value="en">English</option>-->
+                <!--<option value="de">German</option>-->
+            <!--</select>-->
+        <!--</div>-->
     </div>
     <div class="input-group">
         <div class="form-group col-6">
