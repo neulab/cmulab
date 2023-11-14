@@ -11,7 +11,6 @@ CMULAB plugins (backend ML/NLP models) can be installed by simply running:
 ~~~~
 python3 -m pip install git+https://github.com/zaidsheikh/cmulab_allosaurus
 python3 -m pip install git+https://github.com/zaidsheikh/cmulab_diarization
-python3 -m pip install git+https://github.com/zaidsheikh/cmulab_stanza
 ...
 ~~~~
 

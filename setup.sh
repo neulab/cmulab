@@ -15,7 +15,7 @@ conda activate cmulab
 python setup.py develop
 pip install git+https://github.com/zaidsheikh/cmulab_allosaurus
 pip install git+https://github.com/zaidsheikh/cmulab_diarization
-pip install git+https://github.com/zaidsheikh/cmulab_stanza
+# pip install git+https://github.com/zaidsheikh/cmulab_stanza
 ln -s /dev/shm/.config/.env.yml .
 
 python manage.py makemigrations annotator
