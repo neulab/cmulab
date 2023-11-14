@@ -6,6 +6,7 @@ speech/migrations/
 cmulab.egg-info/
 *.pyc
 annotator/media/
+logs
 log.*
 .env.yml
 *.code-workspace
