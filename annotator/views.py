@@ -10,6 +10,8 @@ from django.views.static import serve
 from django.middleware.csrf import get_token
 from django.views.decorators.cache import never_cache
 
+import requests
+
 from transformers import pipeline
 import torch
 # bug fix for torch 1.9.0
@@ -104,6 +106,7 @@ ocr_api_usage = {}
 OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
 IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
+COG_TRANSLATION_SERVER = os.environ.get("COG_TRANSLATION_SERVER", "http://172.17.0.1:5430/predictions")
 MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
@@ -917,8 +920,8 @@ def translate(request):
     toolkit = request.POST.get("toolkit")
     model_id = request.POST.get("model_id")
     text = request.POST.get("text")
-    # lang_from = request.POST.get("lang_from")
-    # lang_to = request.POST.get("lang_to")
+    lang_from = request.POST.get("lang_from")
+    lang_to = request.POST.get("lang_to")
     # if not (toolkit and model_id and lang_from and lang_to and text):
         # return Response("required parameters: toolkit, model, lang_from, lang_to, text", status=status.HTTP_400_BAD_REQUEST)
     if not (toolkit and model_id  and text):
@@ -938,6 +941,17 @@ def translate(request):
                 error_msg = ''.join(traceback.format_exc())
                 return Response(f"An error occurred: {error_msg}", status=status.HTTP_400_BAD_REQUEST)
         response_text = translator.translate(text)
+    elif toolkit == "huggingface-transformers" and model_id == "facebook/nllb-200-distilled-600M":
+        payload = {
+            "input": {"text": text, "src_lang": lang_from, "tgt_lang": lang_to}
+        }
+        response = requests.post(COG_TRANSLATION_SERVER, json=payload)
+        print("Routing request to COG translation server " + COG_TRANSLATION_SERVER)
+
+        if response.status_code == 200:
+                response_text = response.json().get('output', '')
+        else:
+                return Response(f"An error occurred: {response.status_code}", status=status.HTTP_400_BAD_REQUEST)
     elif toolkit == "huggingface-transformers":
         if not translator:
             try:
