@@ -107,6 +107,7 @@ OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correctio
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
 IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
 COG_TRANSLATION_SERVER = os.environ.get("COG_TRANSLATION_SERVER", "http://172.17.0.1:5430/predictions")
+COG_GLOSSLM_SERVER = os.environ.get("COG_GLOSSLM_SERVER", "http://172.17.0.1:5431/predictions")
 MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
@@ -907,11 +908,34 @@ def train_single_source_ocr_job(model1, params, user, job_id, email, debug):
 
 
 def unload_all_translation_models():
-    print(f"Unloading all translation models.")
+    print("Unloading all translation models.")
     TRANSLATION_MODELS.clear()
     torch.cuda.empty_cache()
     gc.collect()
 
+
+@api_view(['POST'])
+@csrf_exempt
+def gloss(request):
+        text = request.POST.get("text", "")
+        translation = request.POST.get("translation", "")
+        payload = {"input": {"text": text, "translation": translation}}
+        print(f"payload: {json.dumps(payload)}")
+        try:
+            response = requests.post(COG_GLOSSLM_SERVER, json=payload)
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while making the request: {e}")
+            return Response(
+                f"/gloss: An error occurred while making the request: {e}", status=status.HTTP_400_BAD_REQUEST
+            )
+        print("Routing request to glossLM server " + COG_GLOSSLM_SERVER)
+        if response.status_code == 200:
+                response_text = response.json().get("output", "")
+        else:
+                return Response(
+                        f"/gloss: An error occurred: {response.status_code}", status=status.HTTP_400_BAD_REQUEST
+                )
+        return Response(response_text, status=status.HTTP_202_ACCEPTED)
 
 
 @api_view(['POST'])

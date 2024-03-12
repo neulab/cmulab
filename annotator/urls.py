@@ -57,6 +57,7 @@ urlpatterns = [
     path('annotator/profile', views.user_profile, name='user_profile'),
     path('annotator/get_model_ids', views.get_model_ids, name='get_model_ids'),
     path('annotator/translate', views.translate, name='translate'),
+    path('annotator/gloss', views.gloss, name='gloss'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
