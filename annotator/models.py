@@ -73,6 +73,11 @@ class Mlmodel(models.Model):
             elif self.modelTrainingSpec == "ocr-post-correction":
                 print("Deleting " + os.path.join(MEDIA_ROOT, self.name))
                 shutil.rmtree(os.path.join(MEDIA_ROOT, self.name))
+            try:
+                os.remove(self.log_file)
+            except:
+                tb = traceback.format_exc()
+                print(tb)
         except:
             tb = traceback.format_exc()
             print(tb)

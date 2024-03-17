@@ -59,7 +59,7 @@ RQ_QUEUES = {
         'PORT': 8379,
         'DB': 0,
         'PASSWORD': 'asdf234KHk12ala01#1sasHH43',
-        'DEFAULT_TIMEOUT': 3600,
+        'DEFAULT_TIMEOUT': 86400,
     }
 }
 
@@ -203,6 +203,9 @@ REST_FRAMEWORK = {
 # The correct MEDIA ROOT for development is below
 MEDIA_URL = '/annotator/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'annotator/media')
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800 # 50 mb
+DATA_UPLOAD_MAX_MEMORY_SIZE = 262144000 # 250 mb
 
 CORS_ORIGIN_ALLOW_ALL = True
 

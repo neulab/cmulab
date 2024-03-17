@@ -26,15 +26,29 @@ trained_model_name="my_trained_model"
 # ------------------------------END: Required experimental settings------------------------------
 
 
-eval $(conda shell.bash hook)
-conda activate ocr-post-correction
-#source activate ocr-post-correction
+eval $(conda shell.bash hook) &>/dev/null
+conda activate ocr-post-correction &>/dev/null
+source activate ocr-post-correction &>/dev/null
+echo $CONDA_DEFAULT_ENV
+echo $CONDA_PREFIX
+
 set -x
 
     annotated_dir=${working_dir}/text_outputs/corrected/
     mkdir -p ${annotated_dir}/src1 ${annotated_dir}/tgt
     (cd ${annotated_dir}/src1; unzip -j $src1_data)
     (cd ${annotated_dir}/tgt; unzip -j $tgt_data)
+
+    # The UI already forces user to upload the set of filenames for source and target datasets
+    # but doesn't check whether the number of lines in the corresponding files are equal
+    for f in $(ls ${annotated_dir}/src1/)
+    do
+        if [ "$(wc -l < ${annotated_dir}/src1/$f)" -ne "$(wc -l < ${annotated_dir}/tgt/$f)" ]; then
+            echo "Number of lines in $f differ in the source and target datasets."
+            echo "The original lines in the source files and the corrected lines in the target files should be equal in number and correctly aligned."
+            exit 1
+        fi
+    done
 
     unannotated_src=${working_dir}/text_outputs/uncorrected/src1/
     mkdir -p $unannotated_src
@@ -115,9 +129,10 @@ set -x
     --train_only
 
     if [ -s ${expt_folder}/models/${trained_model_name} ]; then
-        echo "Traning completed successfully!"
+        cat ${expt_folder}/train_logs/${trained_model_name}.log
+        echo "Training completed successfully!"
         exit 0
     else
-        echo "Traning failed!"
+        echo "Training failed!"
         exit 1
     fi

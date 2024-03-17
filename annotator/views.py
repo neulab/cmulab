@@ -1,5 +1,6 @@
 import os
 import re
+import gc
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
@@ -7,7 +8,24 @@ from django.core.mail import EmailMessage, send_mail
 from django.conf import settings
 from django.views.static import serve
 from django.middleware.csrf import get_token
+from django.views.decorators.cache import never_cache
 
+import requests
+
+from transformers import pipeline
+import torch
+# bug fix for torch 1.9.0
+# https://stackoverflow.com/questions/68901236/urllib-error-httperror-http-error-403-rate-limit-exceeded-when-loading-resnet1
+torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
+
+TRANSLATION_MODELS = {
+    # "huggingface-transformers": {
+        # ("fr", "en", "Helsinki-NLP/opus-mt-fr-en"): pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en")
+    # },
+    # "pytorch-fairseq": {
+    #     ("en", "de", "transformer.wmt19.en-de"): torch.hub.load('pytorch/fairseq', 'transformer.wmt19.en-de', checkpoint_file='model1.pt:model2.pt:model3.pt:model4.pt', tokenizer='moses', bpe='fastbpe')
+    # }
+}
 
 
 from zipfile import ZipFile
@@ -88,6 +106,8 @@ ocr_api_usage = {}
 OCR_POST_CORRECTION = os.environ.get("OCR_POST_CORRECTION", "/ocr-post-correction/")
 OCR_API_USAGE_LIMIT = int(os.environ.get("OCR_API_USAGE_LIMIT", 100))
 IMAGE_SYNCHRONOUS_LIMIT = int(os.environ.get("IMAGE_SYNCHRONOUS_LIMIT", 10))
+COG_TRANSLATION_SERVER = os.environ.get("COG_TRANSLATION_SERVER", "http://172.17.0.1:5430/predictions")
+COG_GLOSSLM_SERVER = os.environ.get("COG_GLOSSLM_SERVER", "http://172.17.0.1:5431/predictions")
 MEDIA_ROOT = getattr(settings, "MEDIA_ROOT", "/tmp")
 
 
@@ -887,6 +907,91 @@ def train_single_source_ocr_job(model1, params, user, job_id, email, debug):
     send_job_completion_email(email, subject, message, params["log_file"])
 
 
+def unload_all_translation_models():
+    print("Unloading all translation models.")
+    TRANSLATION_MODELS.clear()
+    torch.cuda.empty_cache()
+    gc.collect()
+
+
+@api_view(['POST'])
+@csrf_exempt
+def gloss(request):
+        text = request.POST.get("text", "")
+        translation = request.POST.get("translation", "")
+        payload = {"input": {"text": text, "translation": translation}}
+        print(f"payload: {json.dumps(payload)}")
+        try:
+            response = requests.post(COG_GLOSSLM_SERVER, json=payload)
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while making the request: {e}")
+            return Response(
+                f"/gloss: An error occurred while making the request: {e}", status=status.HTTP_400_BAD_REQUEST
+            )
+        print("Routing request to glossLM server " + COG_GLOSSLM_SERVER)
+        if response.status_code == 200:
+                response_text = response.json().get("output", "")
+        else:
+                return Response(
+                        f"/gloss: An error occurred: {response.status_code}", status=status.HTTP_400_BAD_REQUEST
+                )
+        return Response(response_text, status=status.HTTP_202_ACCEPTED)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def translate(request):
+    toolkit = request.POST.get("toolkit")
+    model_id = request.POST.get("model_id")
+    text = request.POST.get("text")
+    lang_from = request.POST.get("lang_from")
+    lang_to = request.POST.get("lang_to")
+    # if not (toolkit and model_id and lang_from and lang_to and text):
+        # return Response("required parameters: toolkit, model, lang_from, lang_to, text", status=status.HTTP_400_BAD_REQUEST)
+    if not (toolkit and model_id  and text):
+        return Response("required parameters: toolkit, model, text", status=status.HTTP_400_BAD_REQUEST)
+    # model_key = (toolkit, lang_from, lang_to, model_id)
+    model_key = model_id
+    # TODO: unload least recently used models from memory
+    translator = TRANSLATION_MODELS.get(model_key)
+    if toolkit == "pytorch-fairseq":
+        if not translator:
+            try:
+                unload_all_translation_models()
+                print(f"Loading {model_id}, please wait...")
+                translator = torch.hub.load('pytorch/fairseq', model_id, checkpoint_file='model1.pt:model2.pt:model3.pt:model4.pt', tokenizer='moses', bpe='fastbpe')
+                TRANSLATION_MODELS[model_key] = translator
+            except:
+                error_msg = ''.join(traceback.format_exc())
+                return Response(f"An error occurred: {error_msg}", status=status.HTTP_400_BAD_REQUEST)
+        response_text = translator.translate(text)
+    elif toolkit == "huggingface-transformers" and model_id == "facebook/nllb-200-distilled-600M":
+        payload = {
+            "input": {"text": text, "src_lang": lang_from, "tgt_lang": lang_to}
+        }
+        response = requests.post(COG_TRANSLATION_SERVER, json=payload)
+        print("Routing request to COG translation server " + COG_TRANSLATION_SERVER)
+
+        if response.status_code == 200:
+                response_text = response.json().get('output', '')
+        else:
+                return Response(f"An error occurred: {response.status_code}", status=status.HTTP_400_BAD_REQUEST)
+    elif toolkit == "huggingface-transformers":
+        if not translator:
+            try:
+                unload_all_translation_models()
+                print(f"Loading {model_id}, please wait...")
+                translator = pipeline("translation", model=model_id)
+                TRANSLATION_MODELS[model_key] = translator
+            except:
+                error_msg = ''.join(traceback.format_exc())
+                return Response(f"An error occurred: {error_msg}", status=status.HTTP_400_BAD_REQUEST)
+        response_text = translator(text)[0].get('translation_text')
+    else:
+        return Response(f"Supported toolkits: {list(TRANSLATION_MODELS.keys())}", status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(response_text, status=status.HTTP_202_ACCEPTED)
+
 
 # @login_required(login_url='')
 @api_view(['GET'])
@@ -937,6 +1042,7 @@ def download_file(request, filename):
 
 @api_view(['GET'])
 @csrf_exempt
+@never_cache
 def get_model_ids(request):
     model_ids = [m.name for m in Mlmodel.objects.all()]
     return Response(model_ids)
