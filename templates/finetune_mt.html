@@ -1,13 +1,14 @@
 <form id="finetune_mt_form" action="/annotator/finetune_mt">
+        <fieldset disabled="disabled">
     <div class="input-group">
-        <div class="form-group col-4">
+        <div class="form-group col-3">
             <label for="exampleFormControlSelect1">Hub</label>
             <select class="form-control" name="toolkit" id="toolkit">
                 <option value="huggingface-transformers">🤗 Hugging Face </option>
                 <!-- <option value="pytorch-fairseq" disabled>pytorch/fairseq</option> -->
             </select>
         </div>
-        <div class="form-group col-4">
+        <div class="form-group col-3">
             <label for="exampleFormControlSelect2">Model</label>
             <select class="form-control" name="model_id" id="model_id">-->
                 <option>facebook/nllb-200-distilled-600M</option>
@@ -23,27 +24,30 @@
         </div>
         <datalist id="lang_list">
         </datalist>
-        <div class="form-group col-2">
+        <div class="form-group col-3">
             <label for="exampleFormControlSelect1">Source Language</label>
             <!-- <select class="form-control" name="lang_from" id="lang_from">
             </select> -->
             <input class="form-control" name="lang_from" id="lang_from" type="text" list="lang_list" />
         </div>
-        <div class="form-group col-2">
+        <div class="form-group col-3">
             <label for="exampleFormControlSelect2">Target Language</label>
             <!-- <select class="form-control" name="lang_to" id="lang_to">
             </select> -->
             <input class="form-control" name="lang_to" id="lang_to" type="text" list="lang_list" />
         </div>
     </div>
-    <div class="input-group offset-md-8">
-        <div class="form-group col-2">
+    <div class="input-group offset-md-3">
+        <div class="form-group col-3">
+            <input class="form-control" name="new_model_id" id="new_model_id" type="text" placeholder="New model ID"/>
+        </div>
+        <div class="form-group col-3">
         <div class="custom-file">
             <input multiple type="file" class="custom-file-input" id="customFile">
             <label class="custom-file-label" for="customFile">Source files</label>
         </div>
         </div>
-        <div class="form-group col-2">
+        <div class="form-group col-3">
         <div class="custom-file">
             <input multiple type="file" class="custom-file-input" id="customFile">
             <label class="custom-file-label" for="customFile">Target files</label>
@@ -56,6 +60,7 @@
         <input class="btn btn-primary" id="submit" type="submit" value="Finetune" />
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
     </div>
+    </fieldset>
 </form>
 <script>
     const nllb_lang_list = [
