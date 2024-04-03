@@ -15,9 +15,13 @@
         <p/>
         <h1>CMU Linguistic Annotation Backend</h1>
         <p style="text-align: right">
-            You are logged in as
-            <b><a href="#" data-toggle="modal" data-target="#userSettingsModal">{{ user.username }}</a></b>
-            ({{ user.email }}). <a href="/annotator/logout">Logout</a>
+            {% if user.is_authenticated %}
+                You are logged in as
+                <b><a href="#" data-toggle="modal" data-target="#userSettingsModal">{{ user.username }}</a></b>
+                ({{ user.email }}). <a href="/annotator/logout">Logout</a>
+            {% else %}
+                <a href="/accounts/login/?next=/">Signup / Login</a>
+            {% endif %}
         </p>
 
         <div class="modal" id="userSettingsModal" tabindex="-1" role="dialog" aria-labelledby="userSettingsModalTitle"
@@ -54,9 +58,11 @@
                 <a class="nav-link active" id="upload-tab"  href="#upload" role="tab" aria-controls="upload" aria-selected="true">Upload</a>
             </li>
             -->
+            {% if user.is_authenticated %}
             <li class="nav-item">
                 <a class="nav-link" id="models-tab"  href="#models" role="tab" aria-controls="models" aria-selected="false">Your models</a>
             </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link" id="public-models-tab"  href="#public_models" role="tab" aria-controls="public_models" aria-selected="false">Public models</a>
             </li>
@@ -249,12 +255,17 @@
             </div>
 
             <div class="tab-pane fade" id="ocr" role="tabpanel" aria-labelledby="ocr-tab">
+                {% if user.is_authenticated %}
                 <div class="embed-responsive embed-responsive-16by9">
-                    <iframe class="embed-responsive-item" style="width:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
+                        <iframe class="embed-responsive-item" style="width:100%;" scrolling="auto" src="/static/ocr-web-interface/index.html"></iframe>
                 </div>
+                {% else %}
+                    <div class="m-4"> Please <a href="/accounts/login/?next=/">login or signup</a> to access this feature.  </div>
+                {% endif %}
             </div>
 
             <div class="tab-pane fade" id="translation" role="tabpanel" aria-labelledby="translation-tab">
+                {% if user.is_authenticated %}
                     <div id="accordion">
                         <div class="card">
                             <div class="card-header" id="headingOne" style="padding-top: 0.1rem; padding-bottom: 0.1rem;">
@@ -287,6 +298,9 @@
                             </div>
                         </div>
                     </div>
+                {% else %}
+                    <div class="m-4"> Please <a href="/accounts/login/?next=/">login or signup</a> to access this feature.  </div>
+                {% endif %}
             </div>
 
             <div class="tab-pane fade" id="elan" role="tabpanel" aria-labelledby="elan-tab">
@@ -306,14 +320,21 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
         <script>
+            $('.nav-tabs a').click(function (e) {
+                        $(this).tab('show');
+            });
+        </script>
+        {% if not user.is_authenticated %}
+        <script>
+            $('#translation').find('input, textarea, button, select').attr('disabled','disabled');
+        </script>
+        {% else %}
+        <script>
             var csrf_token = '{{csrf_token}}';
             $(document).ready(function(){
                 if(window.location.hash != "") {
                     $('a[href="' + window.location.hash + '"]').click()
                 }
-            });
-            $('.nav-tabs a').click(function (e) {
-                        $(this).tab('show');
             });
             $('.table').on('click', '.delete-button', function () {
                 let model_id = $(this).data('id');
@@ -347,6 +368,7 @@
                 });
             });
         </script>
+        {% endif %}
     </body>
 
 </html>
