@@ -578,8 +578,12 @@ def irb_consent(request):
     #return HttpResponseRedirect("/")
     return HttpResponse(status=204)
 
-@login_required(login_url='')
+#@login_required(login_url='')
 def list_home(request):
+    # TODO: add a new flag to Mlmodel to desginate public models
+    public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
+    if not request.user.is_authenticated:
+        return render(request, 'list.html', {'public_ml_models': public_ml_models})
     if not hasattr(request.user, 'userprofile'):
         request.user.userprofile = UserProfile.objects.create(user=request.user)
         request.user.save()
@@ -602,8 +606,6 @@ def list_home(request):
     # Load documents for the list page
     documents = Document.objects.filter(owner=request.user).order_by('-id')[:10]
     ml_models = Mlmodel.objects.filter(owner=request.user).reverse()
-    # TODO: add a new flag to Mlmodel to desginate public models
-    public_ml_models = Mlmodel.objects.filter(owner=None).filter(status=Mlmodel.READY).reverse()
     for ml_model in chain(ml_models, public_ml_models):
         # TODO: get log_url from mlmodel
         if ml_model.modelTrainingSpec == "allosaurus":
